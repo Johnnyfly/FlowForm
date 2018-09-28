@@ -1,0 +1,10 @@
+#test{
+    width:1220px;
+    margin:0 auto;
+    height: 100%;
+    position: relative;
+}
+
+html,body{
+    height: 100%;
+}
