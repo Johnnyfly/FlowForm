@@ -1,0 +1,40 @@
+.desiContent {
+  height: 100%;
+  margin-left: 210px;
+  margin-right: 230px;
+  padding-top: 15px;
+  border: 1px solid #ccc;
+  border-width: 0 1px;
+  box-shadow: 0 0 4px 0 rgba(193, 201, 217, 0.5);
+  border-radius: 3px;
+  background: #fff;
+  overflow-y: auto;
+  box-sizing: border-box;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+}
+.desiContent .fromDesign {
+  flex: 1;
+}
+.desiContent .fieldItem {
+  width: 740px;
+  border: 1px solid #fff;
+  margin: 3px 10px;
+  line-height: 25px;
+  position: relative;
+  padding: 8px;
+}
+.desiContent .reToDo {
+  border-bottom: 1px #ccc solid;
+  padding-bottom: 15px;
+  color: #ccc;
+  padding-left: 21px;
+}
+#insetEl {
+  height: 50px;
+  border: 2px red dashed;
+}
+#insetEl + .fieldItem.textInput {
+  display: none;
+}
