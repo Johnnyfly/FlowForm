@@ -1,0 +1,5 @@
+
+
+var a = {}
+
+export {a}
