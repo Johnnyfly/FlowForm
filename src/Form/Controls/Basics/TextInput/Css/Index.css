@@ -1,0 +1,15 @@
+.desiContent .fieldItem[type='TextInput'] {
+  padding: 8px;
+  margin: 0;
+}
+.desiContent .fieldItem[type='TextInput'] .txtInput {
+  resize: none;
+  border: 0;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  height: 26px;
+  margin: 0;
+  padding: 0;
+  display: block;
+}

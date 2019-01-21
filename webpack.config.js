@@ -41,7 +41,7 @@ module.exports = function (env = {}, argv) {
         },
 
         entry = {
-            app: './src/Index.js'
+            app: './src/Form/Index.js'
         },
 
         output = {

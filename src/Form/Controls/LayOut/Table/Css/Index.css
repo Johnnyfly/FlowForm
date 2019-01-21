@@ -1,0 +1,60 @@
+#selectionBox {
+  position: absolute;
+  border: 1px dashed #ccc;
+  top: 0;
+  left: 0;
+}
+/****************          中间布局   ****************/
+.desiContent .tbLayout {
+  width: 100%;
+}
+.desiContent .tbLayout .fieldItem {
+  height: 100%;
+  width: auto;
+  display: block;
+}
+.desiContent .tbLayout td {
+  border: 1px solid #208aee;
+  background: #eaf4fe;
+  vertical-align: top;
+}
+.desiContent .tbLayout td.active {
+  background: #d0e9fe;
+  border: 1px solid #5aabf5;
+}
+/****************************   属性渲染  ********************************************/
+.designProps .setProps .setRowCol {
+  text-align: center;
+}
+.designProps .setProps .setRowCol .txtShort {
+  width: 38px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  border-radius: 3px;
+  color: #515151;
+  outline: none;
+  border: 1px #ccc solid;
+}
+.designProps .setProps .setRowCol .desc {
+  margin-left: 5px;
+}
+.designProps .setProps .setRowCol .gap {
+  margin: 0 14px 0 12px;
+  font-size: 14px;
+  color: #535353;
+}
+#tbContextMenu {
+  position: fixed;
+  width: 108px;
+  border: 1px #ccc solid;
+  background: #fff;
+  padding: 5px 0px;
+}
+#tbContextMenu .btnNorMal {
+  display: block;
+  font-size: 12px;
+  height: 23px;
+  line-height: 23px;
+  padding-left: 15px;
+}

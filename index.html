@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>FormDesi</title>
+    <link href="./dist/css/index.css" rel="styleSheet" />
+    <style>
+        #demo {
+            width: 1220px;
+            margin: 0 auto;
+            height: 100%;
+            position: relative;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="demo">
+
+    </div>
+
+    <script src="./jquery-1.12.4.min.js" ></script>
+    <script src="./dist/js/app.js"></script>
+
+    <script>
+        var a = new FormDesi({
+            $el: $("#demo")
+        })
+    </script>
+
+</body>
+
+</html>

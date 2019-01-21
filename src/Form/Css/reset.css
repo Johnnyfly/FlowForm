@@ -1,0 +1,225 @@
+@import url("iconfont/iconfont.css");
+.ThemeBgDark {
+  background-color: #1154a0!important;
+}
+.ThemeBgDarkHover:hover {
+  background-color: #1154a0!important;
+}
+.ThemeColorDark {
+  color: #1154a0!important;
+}
+.ThemeColorDarkHover:hover {
+  color: #1154a0!important;
+}
+.ThemeBorderColorDark {
+  border-color: #1154a0!important;
+}
+.ThemeBorderColorDarkHover:hover {
+  border-color: #1154a0!important;
+}
+.ThemeBgLight {
+  background-color: #3e78e6!important;
+}
+.ThemeBgLightHover:hover {
+  background-color: #3e78e6!important;
+}
+.ThemeColorLight {
+  color: #3e78e6!important;
+}
+.ThemeColorLightHover:hover {
+  color: #3e78e6!important;
+}
+.ThemeBorderColorLight {
+  border-color: #3e78e6!important;
+}
+.ThemeBorderColorLightHover:hover {
+  border-color: #3e78e6!important;
+}
+.ThemeBorderColorLightSelected.selected {
+  border-color: #3e78e6!important;
+}
+.ThemeBgCool {
+  background-color: #eaf4fe!important;
+}
+.ThemeBgCoolHover:hover {
+  background-color: #eaf4fe!important;
+  cursor: pointer;
+}
+.ThemeColorCool {
+  color: #eaf4fe!important;
+}
+.ThemeColorCoolHover:hover {
+  color: #eaf4fe!important;
+}
+.ThemeBorderColorCool {
+  border-color: #eaf4fe!important;
+}
+.ThemeBorderColorCoolHover:hover {
+  border-color: #eaf4fe!important;
+}
+.ThemeBgWarm {
+  background-color: #1154a0!important;
+}
+.ThemeBgWarmHover:hover {
+  background-color: #1154a0!important;
+}
+.ThemeColorWarm {
+  color: #1154a0!important;
+}
+.ThemeColorWarmHover:hover {
+  color: #1154a0!important;
+}
+.ThemeBorderColorWarm {
+  border-color: #1154a0!important;
+}
+.ThemeBorderColorWarmHover:hover {
+  border-color: #1154a0!important;
+}
+.ThemeBgMedium {
+  background-color: #1154a0!important;
+}
+.ThemeBgMediumHover:hover {
+  background-color: #1154a0!important;
+}
+.ThemeColorMedium {
+  color: #1154a0!important;
+}
+.ThemeColorMediumHover:hover {
+  color: #1154a0!important;
+}
+.ThemeBorderColorMedium {
+  border-color: #1154a0!important;
+}
+.ThemeBorderColorMediumHover:hover {
+  border-color: #1154a0!important;
+}
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+  display: block;
+}
+body {
+  line-height: 1;
+}
+ol,
+ul {
+  list-style: none;
+}
+blockquote,
+q {
+  quotes: none;
+}
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
+  content: '';
+  content: none;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+.noSelected {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}

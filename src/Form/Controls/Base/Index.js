@@ -1,7 +1,7 @@
 
 import AttrHtml from "./AttrHtml"
 
-class BaseControl {
+var BaseControl = {
 
     //生成分组
     genGroup(groupItem) {
@@ -12,12 +12,12 @@ class BaseControl {
             $groupItem.addClass(groupItem.className);
         }
 
-        if (item.title) {
+        if (groupItem.title) {
             $groupItem.append('<div class="attrTitle">' + groupItem.title + '</div>');
         }
 
         return $groupItem;
-    }
+    },
 
     //生成title
     genTitle() {
@@ -31,7 +31,7 @@ class BaseControl {
         });
 
         return $title;
-    }
+    },
 
     //生成隐藏标题
     genHideTitle() {
@@ -44,7 +44,7 @@ class BaseControl {
         });
 
         return $hideTitle;
-    }
+    },
 
     //生成输入框提示
     genplaceHolder() {
