@@ -14,7 +14,8 @@ function FormDesi(params){
     }
 
     var defaults = { 
-        $el: $("body")
+        $el: $("body"),
+        mode:"desi"
     }
 
     this.Settings = $.extend(defaults, params);  
@@ -41,7 +42,6 @@ FormDesi.prototype.AllControls = AllControls;
 FormDesi.prototype.DesiContent = DesiContent;
 
 FormDesi.prototype.DesiProps = DesiProps;
-
 
 window.FormDesi = FormDesi;
 

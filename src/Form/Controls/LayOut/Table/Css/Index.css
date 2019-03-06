@@ -13,14 +13,30 @@
   width: auto;
   display: block;
 }
-.desiContent .tbLayout td {
+.desiContent .tbLayout td,
+.desiContent .tbLayout th {
   border: 1px solid #208aee;
   background: #eaf4fe;
   vertical-align: top;
 }
-.desiContent .tbLayout td.active {
+.desiContent .tbLayout td.active,
+.desiContent .tbLayout th.active {
   background: #d0e9fe;
   border: 1px solid #5aabf5;
+}
+.desiContent .tbLayout th {
+  color: #ccc;
+  line-height: 30px;
+}
+.desiContent .tbLayout th.ewResize {
+  cursor: ew-resize;
+}
+.desiContent .tbLayout td.seatLast {
+  visibility: hidden;
+  height: 44px;
+  width: 0px;
+  display: block;
+  border-top: 0;
 }
 /****************************   属性渲染  ********************************************/
 .designProps .setProps .setRowCol {
@@ -43,6 +59,11 @@
   margin: 0 14px 0 12px;
   font-size: 14px;
   color: #535353;
+}
+.designProps .setProps .setRowCol .btnNorMal {
+  display: inline-block;
+  width: 68px;
+  margin-right: 12px;
 }
 #tbContextMenu {
   position: fixed;

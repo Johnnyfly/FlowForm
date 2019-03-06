@@ -33,7 +33,7 @@ module.exports = function (env = {}, argv) {
 
         watchOptions = {
             //不监听的文件或文件夹 可以正则
-            ignored: /node modules/,
+            ignored: /node_modules/,
             //发现变化 等待时间后 执行编译 提升性能 
             aggregateTimeout: 300,
             //轮询文件变化时间
