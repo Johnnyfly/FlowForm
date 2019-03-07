@@ -94,7 +94,7 @@ var DropTo = {
 
         $(window).on("mousemove.ewResize", function (event) {
 
-            var diffX = event.pageX - sourceX; 
+            var diffX = event.pageX - sourceX;
 
             if (diffX == 0) {
                 return;
@@ -103,7 +103,7 @@ var DropTo = {
 
             if (ewdirc != "left") {
 
-                var newW = sourceW + diffX, 
+                var newW = sourceW + diffX,
                     diffTdW = newW - parseInt($el.attr("width"));
 
                 if (newW < 1) {
@@ -118,14 +118,14 @@ var DropTo = {
                     return false;
                 }
 
-                $el.next().width(nextW);
-                $el.width(elW);
+                $el.next().attr("width",nextW);
+                $el.attr("width",elW);
 
                 //that.setTdWidth(tdArr);
 
             } else {
 
-                var newW = sourceW - diffX, 
+                var newW = sourceW - diffX,
                     diffTdW = newW - parseInt($el.attr("width"));
 
                 if (newW < 1) {
@@ -142,8 +142,8 @@ var DropTo = {
                     return false;
                 }
 
-                $el.prev().width(prevW);
-                $el.width(elW);
+                $el.prev().attr("width",prevW);
+                $el.attr("width",elW);
                 //that.setTdWidth(tdArr);
             }
 
@@ -158,8 +158,8 @@ var DropTo = {
         });
     },
 
-     //绑定td合并前的选中
-     bindSelectionTdEvent: function (initPoint) {
+    //绑定td合并前的选中
+    bindSelectionTdEvent: function (initPoint) {
 
         $("body").addClass("noSelected");
 
@@ -214,14 +214,14 @@ var DropTo = {
         $(window).on("mouseup.selectionTd", function () {
 
             $(window).off("mousemove.selectionTd");
-            
+
             $(window).off("mouseup.selectionTd");
 
             $selectionBox && $selectionBox.remove();
 
-            $("body").removeClass("noSelected"); 
+            $("body").removeClass("noSelected");
 
-            $("body").one("click",function(){ 
+            $("body").one("click", function () {
                 initPoint.$table.find(".active").removeClass("active");
             });
         });
@@ -233,7 +233,7 @@ var DropTo = {
         var that = this;
         //遍历所有的td  
         $table.find("td").each(function () {
-
+             
             var $td = $(this),
                 cX = $td.offset().left,
                 cY = $td.offset().top,
@@ -247,10 +247,10 @@ var DropTo = {
             }
 
             if (cY < styleObj.top && cY + cH > styleObj.top || cY > styleObj.top && cY < styleObj.top + styleObj.height) {
-                if(!$td.hasClass("seatLast")){
+                if (!$td.hasClass("seatLast")) {
                     $td.addClass("active");
                 }
-                
+
                 //横向
                 if ($td.attr("colspan")) {
                     var newRight = cX + cW;
@@ -285,6 +285,21 @@ var DropTo = {
                         that.diffSelectionTd(styleObj, $table);
 
                         return false;
+                    } else {
+
+                        if (cY < (styleObj.top-2)) { 
+
+                            var diffTop = styleObj.top - cY -1;
+                            styleObj.top -= diffTop;
+                            styleObj.height += diffTop;
+
+                            that.diffSelectionTd(styleObj, $table);
+
+                            return false;
+
+                        }
+
+
                     }
                 }
             } else {

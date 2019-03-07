@@ -66,6 +66,10 @@ var TextInput = {
 
     parse() {
 
+    },
+
+    renderProps(){
+        
     }
 
 

@@ -60,35 +60,503 @@
 /******/ 	__webpack_require__.p = "./dist";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
 
-// EXTERNAL MODULE: ./src/Form/Css/reset.less
-var Css_reset = __webpack_require__(1);
-var reset_default = /*#__PURE__*/__webpack_require__.n(Css_reset);
+(function (global, factory) {
+	if (true) {
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [module, exports], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
+				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	} else if (typeof exports !== "undefined") {
+		factory(module, exports);
+	} else {
+		var mod = {
+			exports: {}
+		};
+		factory(mod, mod.exports);
+		global.autosize = mod.exports;
+	}
+})(undefined, function (module, exports) {
+	'use strict';
 
-// EXTERNAL MODULE: ./src/Form/NavControls/Css/Index.less
-var Index = __webpack_require__(2);
-var Index_default = /*#__PURE__*/__webpack_require__.n(Index);
+	var map = typeof Map === "function" ? new Map() : function () {
+		var keys = [];
+		var values = [];
 
-// CONCATENATED MODULE: ./src/Form/NavControls/Events/DropTo.js
+		return {
+			has: function has(key) {
+				return keys.indexOf(key) > -1;
+			},
+			get: function get(key) {
+				return values[keys.indexOf(key)];
+			},
+			set: function set(key, value) {
+				if (keys.indexOf(key) === -1) {
+					keys.push(key);
+					values.push(value);
+				}
+			},
+			delete: function _delete(key) {
+				var index = keys.indexOf(key);
+				if (index > -1) {
+					keys.splice(index, 1);
+					values.splice(index, 1);
+				}
+			}
+		};
+	}();
+
+	var createEvent = function createEvent(name) {
+		return new Event(name, { bubbles: true });
+	};
+	try {
+		new Event('test');
+	} catch (e) {
+		createEvent = function createEvent(name) {
+			var evt = document.createEvent('Event');
+			evt.initEvent(name, true, false);
+			return evt;
+		};
+	}
+
+	function assign(ta) {
+		if (!ta || !ta.nodeName || ta.nodeName !== 'TEXTAREA' || map.has(ta)) return;
+
+		var heightOffset = null;
+		var clientWidth = null;
+		var cachedHeight = null;
+
+		function init() {
+			var style = window.getComputedStyle(ta, null);
+
+			if (style.resize === 'vertical') {
+				ta.style.resize = 'none';
+			} else if (style.resize === 'both') {
+				ta.style.resize = 'horizontal';
+			}
+
+			if (style.boxSizing === 'content-box') {
+				heightOffset = -(parseFloat(style.paddingTop) + parseFloat(style.paddingBottom));
+			} else {
+				heightOffset = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+			}
+
+			if (isNaN(heightOffset)) {
+				heightOffset = 0;
+			}
+
+			update();
+		}
+
+		function changeOverflow(value) {
+			{
+				var width = ta.style.width;
+				ta.style.width = '0px';
+
+				ta.offsetWidth;
+
+				ta.style.width = width;
+			}
+
+			ta.style.overflowY = value;
+		}
+
+		function getParentOverflows(el) {
+			var arr = [];
+
+			while (el && el.parentNode && el.parentNode instanceof Element) {
+				if (el.parentNode.scrollTop) {
+					arr.push({
+						node: el.parentNode,
+						scrollTop: el.parentNode.scrollTop
+					});
+				}
+				el = el.parentNode;
+			}
+
+			return arr;
+		}
+
+		function resize() {
+			if (ta.scrollHeight === 0) {
+				return;
+			}
+
+			var overflows = getParentOverflows(ta);
+			var docTop = document.documentElement && document.documentElement.scrollTop;
+
+			ta.style.minHeight = '';
+			ta.style.minHeight = ta.scrollHeight + heightOffset + 'px';
+
+			clientWidth = ta.clientWidth;
+
+			overflows.forEach(function (el) {
+				el.node.scrollTop = el.scrollTop;
+			});
+
+			if (docTop) {
+				document.documentElement.scrollTop = docTop;
+			}
+		}
+
+		function update() {
+			resize();
+
+			var styleHeight = Math.round(parseFloat(ta.style.height));
+			var computed = window.getComputedStyle(ta, null);
+
+			var actualHeight = computed.boxSizing === 'content-box' ? Math.round(parseFloat(computed.height)) : ta.offsetHeight;
+
+			if (actualHeight < styleHeight) {
+				if (computed.overflowY === 'hidden') {
+					changeOverflow('scroll');
+					resize();
+					actualHeight = computed.boxSizing === 'content-box' ? Math.round(parseFloat(window.getComputedStyle(ta, null).height)) : ta.offsetHeight;
+				}
+			} else {
+				if (computed.overflowY !== 'hidden') {
+					changeOverflow('hidden');
+					resize();
+					actualHeight = computed.boxSizing === 'content-box' ? Math.round(parseFloat(window.getComputedStyle(ta, null).height)) : ta.offsetHeight;
+				}
+			}
+
+			if (cachedHeight !== actualHeight) {
+				cachedHeight = actualHeight;
+				var evt = createEvent('autosize:resized');
+				try {
+					ta.dispatchEvent(evt);
+				} catch (err) {}
+			}
+		}
+
+		var pageResize = function pageResize() {
+			if (ta.clientWidth !== clientWidth) {
+				update();
+			}
+		};
+
+		var destroy = function (style) {
+			window.removeEventListener('resize', pageResize, false);
+			ta.removeEventListener('input', update, false);
+			ta.removeEventListener('keyup', update, false);
+			ta.removeEventListener('autosize:destroy', destroy, false);
+			ta.removeEventListener('autosize:update', update, false);
+
+			Object.keys(style).forEach(function (key) {
+				ta.style[key] = style[key];
+			});
+
+			map.delete(ta);
+		}.bind(ta, {
+			height: ta.style.height,
+			resize: ta.style.resize,
+			overflowY: ta.style.overflowY,
+			overflowX: ta.style.overflowX,
+			wordWrap: ta.style.wordWrap
+		});
+
+		ta.addEventListener('autosize:destroy', destroy, false);
+
+		if ('onpropertychange' in ta && 'oninput' in ta) {
+			ta.addEventListener('keyup', update, false);
+		}
+
+		window.addEventListener('resize', pageResize, false);
+		ta.addEventListener('input', update, false);
+		ta.addEventListener('autosize:update', update, false);
+		ta.style.overflowX = 'hidden';
+		ta.style.wordWrap = 'break-word';
+
+		map.set(ta, {
+			destroy: destroy,
+			update: update
+		});
+
+		init();
+	}
+
+	function destroy(ta) {
+		var methods = map.get(ta);
+		if (methods) {
+			methods.destroy();
+		}
+	}
+
+	function update(ta) {
+		var methods = map.get(ta);
+		if (methods) {
+			methods.update();
+		}
+	}
+
+	var autosize = null;
+
+	if (typeof window === 'undefined' || typeof window.getComputedStyle !== 'function') {
+		autosize = function autosize(el) {
+			return el;
+		};
+		autosize.destroy = function (el) {
+			return el;
+		};
+		autosize.update = function (el) {
+			return el;
+		};
+	} else {
+		autosize = function autosize(el, options) {
+			if (el) {
+				Array.prototype.forEach.call(el.length ? el : [el], function (x) {
+					return assign(x, options);
+				});
+			}
+			return el;
+		};
+		autosize.destroy = function (el) {
+			if (el) {
+				Array.prototype.forEach.call(el.length ? el : [el], destroy);
+			}
+			return el;
+		};
+		autosize.update = function (el) {
+			if (el) {
+				Array.prototype.forEach.call(el.length ? el : [el], update);
+			}
+			return el;
+		};
+	}
+
+	exports.default = autosize;
+	module.exports = exports['default'];
+});
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+__webpack_require__(2);
+
+var _Index = __webpack_require__(3);
+
+var _Index2 = _interopRequireDefault(_Index);
+
+var _Index3 = __webpack_require__(6);
+
+var _Index4 = _interopRequireDefault(_Index3);
+
+var _Index5 = __webpack_require__(20);
+
+var _Index6 = _interopRequireDefault(_Index5);
+
+var _Index7 = __webpack_require__(23);
+
+var _Index8 = _interopRequireDefault(_Index7);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function FormDesi(params) {
+
+    if (!this instanceof FormDesi) {
+        return new FormDesi(params);
+    }
+
+    var defaults = {
+        $el: $("body"),
+        mode: "desi"
+    };
+
+    this.Settings = $.extend(defaults, params);
+
+    this.NavControls.$$root = this;
+    this.DesiContent.$$root = this;
+    this.DesiProps.$$root = this;
+    this.$el = this.Settings.$el;
+
+    this.NavControls.init(this.Settings);
+    this.DesiProps.init(this.Settings);
+    this.DesiContent.init(this.Settings);
+}
+
+FormDesi.prototype.find = function (el) {
+    return this.Settings.$el.find(el);
+};
+
+FormDesi.prototype.NavControls = _Index2.default;
+
+FormDesi.prototype.AllControls = _Index4.default;
+
+FormDesi.prototype.DesiContent = _Index6.default;
+
+FormDesi.prototype.DesiProps = _Index8.default;
+
+window.FormDesi = FormDesi;
+
+exports.default = FormDesi;
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+__webpack_require__(4);
+
+var _DropTo = __webpack_require__(5);
+
+var _DropTo2 = _interopRequireDefault(_DropTo);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var Libs = {
+    init: function init() {
+        this.render();
+    },
+    render: function render() {
+
+        var html = this.genTab();
+
+        this.$$root.$el.prepend(html);
+
+        this.initEvent();
+    },
+    initEvent: function initEvent() {
+        var _this = this;
+
+        var $allControls = this.$$root.find(".allControls");
+
+        _DropTo2.default.init($allControls, function (type) {
+            _this.insetControl(type);
+        });
+
+        $allControls.on("click", ".tabControl .item", function () {
+
+            var $this = $(this),
+                type = $this.attr("type");
+
+            $this.addClass("ThemeBorderColorLightSelected").siblings().removeClass("ThemeBorderColorLightSelected");
+
+            $allControls.find(".ControlBox").hide().end().find("." + type + "ControlBox").show();
+        });
+    },
+    insetControl: function insetControl(type) {
+
+        var $$root = this.$$root,
+            InsControl = $$root.AllControls.getControlByType(type);
+
+        if (InsControl) {
+            var $insetEl = $$root.Settings.$el.find("#insetEl");
+            InsControl.$$root = $$root;
+
+            var _controlHtml = InsControl.render();
+            _controlHtml.addClass("selected");
+            $insetEl.after(_controlHtml);
+
+            InsControl.renderProps();
+
+            $insetEl.remove();
+        }
+    },
+    genTab: function genTab(Options) {
+
+        var AllControls = this.$$root.AllControls.Controls,
+            defaultTab = this.$$root.Settings.defaultTab || "LayOut",
+            $allControls = $('<div class="allControls"/>'),
+            $controlTab = $('<ul class="tabControl" />');
+
+        for (var key in AllControls) {
+            $controlTab.append('<li type="' + key + '" class="item">' + AllControls[key].metaInfo.title + '</li>');
+            $allControls.append(this.genControl(key, AllControls[key].Controls));
+        }
+
+        $allControls.prepend($controlTab);
+
+        $allControls.find("." + defaultTab + "ControlBox").show();
+        $allControls.find(".tabControl .item[type=" + defaultTab + "]").addClass("ThemeBorderColorLightSelected");
+
+        return $allControls;
+    },
+    genControl: function genControl(type, Controls) {
+
+        var className = type + "ControlBox",
+            $controlBox = $('<div class="ControlBox" />');
+
+        $controlBox.addClass(className);
+
+        $.each(Controls, function (i, item) {
+
+            var $cItem = $('<div class="cItem ThemeBgCoolHover ThemeBorderColorLightHover" />'),
+                $text = $('<span class="text"/>'),
+                $icon = $('<i class="iconComm zppiconfont"/>'),
+                title = item.metaInfo.title || "拖拽至页面中间",
+                iconClass = item.metaInfo.iconClass || "iconNull";
+
+            $cItem.attr("type", item.metaInfo.type);
+            $cItem.attr("title", title);
+
+            $text.text(item.metaInfo.name);
+            $icon.addClass(iconClass);
+
+            $cItem.append($text);
+            $cItem.append($icon);
+
+            $controlBox.append($cItem);
+        });
+
+        return $controlBox;
+    }
+};
+
+exports.default = Libs;
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
 
 var DropEvent = {
-
-    //初始化绑定
-    init($el, callback) {
+    init: function init($el, callback) {
 
         var that = this;
 
-        //拖拽控件放入
         $el.on("mousedown", ".ControlBox .cItem", function (event) {
             that.bindDropEvent({
                 callback: callback,
@@ -99,8 +567,7 @@ var DropEvent = {
         });
     },
 
-    //拖拽事件绑定
-    bindDropEvent: function (opts) {
+    bindDropEvent: function bindDropEvent(opts) {
 
         var $dropEl = opts.$el.clone(false, false),
             ElOffset = opts.$el.offset(),
@@ -132,7 +599,6 @@ var DropEvent = {
 
             $dropEl.css(StyleObj);
 
-            //计算插入的位置
             that.diffInsertPos(StyleObj);
 
             return false;
@@ -154,8 +620,7 @@ var DropEvent = {
         });
     },
 
-    //计算插入的位置
-    diffInsertPos: function (StyleObj) {
+    diffInsertPos: function diffInsertPos(StyleObj) {
 
         var $desiContent = StyleObj.$el.closest(".allControls").parent().find(".fromDesign"),
             Offset = $desiContent.offset(),
@@ -167,12 +632,10 @@ var DropEvent = {
             that = this,
             insetElHtml = '<div class="fieldItem"  id="insetEl"/>';
 
-        //在 中间
         if (StyleObj.top + DH > cT && StyleObj.top < cT + cH && StyleObj.left > cX && StyleObj.left < cX + cW) {
 
             var $fieldItem = $desiContent.find(".fieldItem");
 
-            //空 没有元素
             if ($fieldItem.length <= 0) {
 
                 if ($("#insetEl").length <= 0) {
@@ -181,7 +644,7 @@ var DropEvent = {
             } else {
 
                 var isFind = false;
-                //上面下面
+
                 $fieldItem.each(function () {
 
                     if ($(this).closest("td").length > 0 && $(this).attr("type") != "TextInput") {
@@ -204,7 +667,6 @@ var DropEvent = {
                         return false;
                     }
 
-                    //在该元素内
                     if (StyleObj.top > cT && StyleObj.top < cT + cH) {
 
                         isFind = true;
@@ -213,7 +675,6 @@ var DropEvent = {
                             return false;
                         }
 
-                        //表格
                         if ($this.find("table").length > 0 && StyleObj.type != "Table" && StyleObj.type != "DataTable") {
 
                             var $prev = $this.prev();
@@ -226,7 +687,6 @@ var DropEvent = {
                                 }
                             }
 
-                            //底部了
                             if (DH + StyleObj.top > cT + cH) {
                                 if ($insetEl.length <= 0) {
                                     $this.after(insetElHtml);
@@ -254,8 +714,6 @@ var DropEvent = {
                                 }
 
                                 if (cY < StyleObj.top && cY + cH > StyleObj.top || cY > StyleObj.top && cY < StyleObj.top + StyleObj.height) {
-
-                                    //数据表格
                                     if ($this.attr("type") == "DataTable") {
                                         if ($td.parent().index() == 0) {
                                             var index = $td.index();
@@ -280,7 +738,6 @@ var DropEvent = {
                             return false;
                         }
 
-                        //下部分
                         if (StyleObj.top > cT + cH / 2) {
 
                             if ($insetEl.length <= 0) {
@@ -315,11 +772,10 @@ var DropEvent = {
         }
     },
 
-    //放入控件
-    insertControl(type, callback) {
+    insertControl: function insertControl(type, callback) {
 
         var $insetEl = $("#insetEl");
-        //可以插入
+
         if ($insetEl.length > 0) {
 
             if (!Libs.AllControls[type]) {
@@ -344,7 +800,6 @@ var DropEvent = {
                     return;
                 }
 
-                //默认输入
                 if ($td.find(".fieldItem.textInput").length >= 1) {
                     $td.find(".fieldItem").remove();
                 }
@@ -354,9 +809,7 @@ var DropEvent = {
                     return;
                 }
 
-                //没有width
                 if (!$td.attr("width")) {
-                    //设置宽度
                     $tb.find("tr td").each(function () {
                         var $this = $(this);
                         $this.attr("width", $this.width()).attr("height", $this.height());
@@ -378,7 +831,6 @@ var DropEvent = {
                     item.$el.attr("width", item.w).attr("height", item.h);
                 });
 
-                //计算浮动宽度
                 Comm.diffElementFixedW($el, $td.width());
 
                 if ($td.closest(".fieldItem").attr("type") == "DataTable") {
@@ -396,1515 +848,138 @@ var DropEvent = {
 
             $el.addClass("selected");
 
-            DesignProps.render({ type, $el: $container });
+            DesignProps.render({ type: type, $el: $container });
         }
     }
-
 };
 
-/* harmony default export */ var DropTo = (DropEvent);
-// CONCATENATED MODULE: ./src/Form/NavControls/Index.js
+exports.default = DropEvent;
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
+var _Index = __webpack_require__(7);
 
+var _Index2 = _interopRequireDefault(_Index);
 
-var Index_Libs = {
+var _Index3 = __webpack_require__(17);
 
-    init() {
-        this.render();
-    },
+var _Index4 = _interopRequireDefault(_Index3);
 
-    render() {
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-        var html = this.genTab();
+var AllControls = {
+    getControlByType: function getControlByType(type) {
 
-        //生成页面
-        this.$$root.$el.prepend(html);
+        var InsControl = false;
 
-        //事件初始化
-        this.initEvent();
-    },
-
-    //事件初始化
-    initEvent() {
-
-        var $allControls = this.$$root.find(".allControls");
-
-        //拖拽
-        DropTo.init($allControls, type => {
-            this.insetControl(type);
+        $.each(_Index4.default.Controls, function (i, item) {
+            if (item.metaInfo.type == type) {
+                InsControl = item;
+                return false;
+            }
         });
-
-        //切换
-        $allControls.on("click", ".tabControl .item", function () {
-
-            var $this = $(this),
-                type = $this.attr("type");
-
-            $this.addClass("ThemeBorderColorLightSelected").siblings().removeClass("ThemeBorderColorLightSelected");
-
-            $allControls.find(".ControlBox").hide().end().find("." + type + "ControlBox").show();
-        });
-    },
-
-    //控件插入
-    insetControl(type) {
-
-        var $$root = this.$$root,
-            InsControl = $$root.AllControls.getControlByType(type);
 
         if (InsControl) {
-            //插入元素 移除 红框
-            var $insetEl = $$root.Settings.$el.find("#insetEl");
-            InsControl.$$root = $$root;
-
-            var _controlHtml = InsControl.render();
-            _controlHtml.addClass("selected");
-            $insetEl.after(_controlHtml);
-
-            //渲染属性
-            InsControl.renderProps();
-
-            $insetEl.remove();
-        }
-    },
-
-    //切换控件
-    genTab(Options) {
-
-        var AllControls = this.$$root.AllControls.Controls,
-            defaultTab = this.$$root.Settings.defaultTab || "LayOut",
-            $allControls = $('<div class="allControls"/>'),
-            $controlTab = $('<ul class="tabControl" />');
-
-        for (var key in AllControls) {
-            $controlTab.append('<li type="' + key + '" class="item">' + AllControls[key].metaInfo.title + '</li>');
-            $allControls.append(this.genControl(key, AllControls[key].Controls));
+            return InsControl;
         }
 
-        $allControls.prepend($controlTab);
-
-        //默认选中第一个
-        $allControls.find("." + defaultTab + "ControlBox").show();
-        $allControls.find(".tabControl .item[type=" + defaultTab + "]").addClass("ThemeBorderColorLightSelected");
-
-        return $allControls;
-    },
-
-    //渲染控件
-    genControl(type, Controls) {
-
-        var className = type + "ControlBox",
-            $controlBox = $('<div class="ControlBox" />');
-
-        $controlBox.addClass(className);
-
-        $.each(Controls, function (i, item) {
-
-            var $cItem = $('<div class="cItem ThemeBgCoolHover ThemeBorderColorLightHover" />'),
-                $text = $('<span class="text"/>'),
-                $icon = $('<i class="iconComm zppiconfont"/>'),
-                title = item.metaInfo.title || "拖拽至页面中间",
-                iconClass = item.metaInfo.iconClass || "iconNull";
-
-            $cItem.attr("type", item.metaInfo.type);
-            $cItem.attr("title", title);
-
-            $text.text(item.metaInfo.name);
-            $icon.addClass(iconClass);
-
-            $cItem.append($text);
-            $cItem.append($icon);
-
-            $controlBox.append($cItem);
-        });
-
-        return $controlBox;
-    }
-};
-
-/* harmony default export */ var NavControls_Index = (Index_Libs);
-// EXTERNAL MODULE: ./src/Form/Controls/LayOut/Table/Css/Index.less
-var Css_Index = __webpack_require__(3);
-var Css_Index_default = /*#__PURE__*/__webpack_require__.n(Css_Index);
-
-// CONCATENATED MODULE: ./src/Form/Controls/Base/AttrHtml.js
-
-
-var AttrHtml = {
-
-    //标题
-    title: '<div class="optItem"><input maxlength="50" type="text" class="txtTitle" /></div>',
-
-    //隐藏标题
-    hideTitle: '<div class="optItem"><label class="attrLab"><input class="ckHideBox" type="checkbox"> 隐藏标题 </label></div>',
-
-    //输入提示
-    placeHolder: '<div class="optItem"><input type="text" class="txtPlaceHolder"></div>',
-
-    //是否必填
-    required: '<div class="optItem"><label class="attrLab"><input class="ckBox" type="checkbox"> 这个是必填项目 </label></div>',
-
-    layout: '<div class="optItem"><label class="attrLab"><input name="setRowCol" checked="true" class="ckLayOut" key="row" type="radio"> 横向 </label>' + '<label class="attrLab"><input key="col" name="setRowCol" class="ckLayOut" type="radio"> 纵向 </label></div>'
-
-};
-
-/* harmony default export */ var Base_AttrHtml = (AttrHtml);
-// CONCATENATED MODULE: ./src/Form/Controls/Base/Index.js
-
-
-
-var BaseControl = {
-
-        //生成分组
-        genGroup(groupItem) {
-
-                var $groupItem = $('<div class="attrItem" />');
-
-                if (groupItem.className) {
-                        $groupItem.addClass(groupItem.className);
-                }
-
-                if (groupItem.title) {
-                        $groupItem.append('<div class="attrTitle">' + groupItem.title + '</div>');
-                }
-
-                return $groupItem;
-        },
-
-        //生成title
-        genTitle() {
-
-                //html
-                var $title = $(Base_AttrHtml.title);
-
-                //事件
-                $title.on("keyup", function () {});
-
-                return $title;
-        },
-
-        //生成隐藏标题
-        genHideTitle() {
-
-                var $hideTitle = $(Base_AttrHtml.hideTitle);
-
-                //事件
-                $hideTitle.on("keyup", function () {});
-
-                return $hideTitle;
-        },
-
-        //生成输入框提示
-        genplaceHolder() {
-
-                var $placeHolder = $(Base_AttrHtml.placeHolder);
-
-                //事件
-                $placeHolder.on("keyup", function () {});
-
-                return $placeHolder;
-        }
-
-};
-
-/* harmony default export */ var Base_Index = (BaseControl);
-// EXTERNAL MODULE: ./src/Form/Js/autosize.js
-var autosize = __webpack_require__(4);
-var autosize_default = /*#__PURE__*/__webpack_require__.n(autosize);
-
-// CONCATENATED MODULE: ./src/Form/Controls/LayOut/Table/Props/DefHtml.js
-
-
-var DefHtml_AttrHtml = {
-
-    colRow: '<div class="optItem"><input class="txtShort txtRow" type="text"><span class="desc">行</span>' + '<span class="gap">×</span><input type="text" class="txtShort txtCol"><span class="desc">列</span>' + '<span type="tbSet" class="btnNorMal ThemeBorderColorLightHover ThemeColorLightHover btnSet">设定</span>' + '<span type="tbSet" op="reset" class="btnNorMal ThemeBorderColorLightHover ThemeColorLightHover btnSet">重置</span></div>',
-
-    tbSet: '<div class="optItem"><span type="rowcolspan" class="btnHandleMal btnNorMal ThemeBorderColorLightHover ThemeColorLightHover">合并单元格</span>' + '<span type="splitCell" class="btnHandleMal btnNorMal ThemeBorderColorLightHover ThemeColorLightHover">拆分单元格</span>' + '<span type="addRow" class="btnHandleMal addRow btnNorMal ThemeBorderColorLightHover ThemeColorLightHover">添加行</span>' + '<span type="addColTable" class="btnHandleMal addCol btnNorMal ThemeBorderColorLightHover ThemeColorLightHover">添加列</span>' + '<span type="delRow" class="btnHandleMal delRow btnNorMal ThemeBorderColorLightHover ThemeColorLightHover">删除行</span>' + '<span type="delColTable" class="btnHandleMal delColTable btnNorMal ThemeBorderColorLightHover ThemeColorLightHover">删除列</span></div>'
-
-};
-
-/* harmony default export */ var DefHtml = (DefHtml_AttrHtml);
-// CONCATENATED MODULE: ./src/Form/Controls/LayOut/Table/Props/CellOp.js
-var CellOp = {
-
-    //合并行
-    rowColSpan: function ($tb) {
-
-        if ($tb.find("td.active").length <= 1) {
-            return;
-        }
-
-        var colspan = 0,
-            rowSpan = 0,
-            $tr = $tb.find("td.active:first").closest("tr"),
-            $trs = $tb.find("td.active").closest("tr");
-
-        $tr.find("td.active").each(function () {
-            var tdColspan = $(this).attr("colspan");
-            if (tdColspan) {
-                colspan += parseInt(tdColspan);
-            } else {
-                colspan += 1;
-            }
-        });
-
-        var aSpanRow = 0;
-        $trs.each(function () {
-            var tdRowSpan = $(this).find("td.active:first").attr("rowspan");
-            if (tdRowSpan && $(this).next().find("td.active").length <= 0) {
-                rowSpan += parseInt(tdRowSpan);
-            } else {
-                rowSpan += 1;
-            }
-        });
-        //合并行 两行合并 只合并了前两列 会多出一行 因为遍历的是tr所以需要去掉
-        rowSpan -= aSpanRow;
-
-        var $firstTd = $tb.find("td.active:first");
-
-        $firstTd.attr("rowspan", rowSpan).attr("colspan", colspan).removeClass("active");
-
-        $tb.find("td.active").remove();
-
-        //Comm.diffElementFixedW($fieldItem); 
-    },
-
-    /**********************************************************  添加行 *******************************************************/
-    //获取td 的位置
-    getTdPosi(tbtdLen, $tb) {
-
-        var _tr = '<tr>';
-
-        for (var j = 0; j < tbtdLen; j++) {
-            _tr += '<td></td>';
-        }
-        _tr += '</tr>';
-
-        $tb.prepend(_tr);
-
-        var $firstTr = $tb.find("tr:first"),
-            TdsWidth = [];
-
-        $firstTr.find("td").each(function (i) {
-
-            var $this = $(this);
-
-            TdsWidth.push({
-                $td: $this,
-                X: $this.offset().left,
-                W: $this.width()
-            });
-        });
-
-        $firstTr.remove();
-
-        return TdsWidth;
-    },
-
-    //插入tr
-    insertTr($tr) {
-
-        if (!$tr) {
-            return;
-        }
-
-        var $tb = $tr.closest(".tbLayout");
-
-        //插入后处理
-        var tbtdLen = 0,
-            trtdLen = 0;
-
-        //表格td 的 个数
-        $tb.find("tr:first td").each(function () {
-            var tdColspan = $(this).attr("colspan");
-            if (tdColspan) {
-                tbtdLen += parseInt(tdColspan);
-            } else {
-                tbtdLen += 1;
-            }
-        });
-
-        //每个td的位置
-        var TdPosi = this.getTdPosi(tbtdLen, $tb),
-            DefectIndex = [],
-            tdCol = 0;
-
-        //当前tr td 的个数 如果一样 不需要处理 不一样 需要递归向上处理
-        $tr.find("td").each(function (i) {
-
-            var tdColspan = $(this).attr("colspan");
-
-            var tLeft = $(this).offset().left;
-
-            if (tdColspan) {
-
-                trtdLen += parseInt(tdColspan);
-
-                for (var c = tdCol; c < tbtdLen; c++) {
-
-                    if (tLeft != TdPosi[c].X) {
-                        tdCol += parseInt(tdColspan);
-                        DefectIndex.push(c);
-                    } else {
-                        tdCol += parseInt(tdColspan);
-                        break;
-                    }
-                }
-            } else {
-
-                trtdLen += 1;
-
-                for (var c = tdCol; c < tbtdLen; c++) {
-
-                    if (tLeft != TdPosi[c].X) {
-                        tdCol += 1;
-                        DefectIndex.push(c);
-                    } else {
-                        tdCol += 1;
-                        break;
-                    }
-                }
-            }
-        });
-
-        if (tdCol < TdPosi.length) {
-            for (var de = tdCol; de < TdPosi.length; de++) {
-                DefectIndex.push(de);
-            }
-        }
-
-        //清除数据
-        var $clone = $tr.clone(false, false).find("td").html('<div class="tdNull"></div>').parent(),
-            isHasRowSpan = false;
-
-        if ($clone.find("td").length != 1) {
-
-            $clone.find("td").each(function () {
-                if ($(this).attr("rowspan")) {
-                    isHasRowSpan = true;
-                    return false;
-                }
-            });
-        }
-
-        //td 中不止一个元素
-        if ($tr.find("td").length > 0) {
-
-            if (trtdLen == tbtdLen && !isHasRowSpan) {
-
-                var rowSpan = $tr.find("td:first").attr("rowspan");
-
-                if (rowSpan) {
-
-                    rowSpan = parseInt(rowSpan) - 1;
-
-                    for (var ix = 0; ix < rowSpan; ix++) {
-                        $tr = $tr.next();
-                    }
-
-                    $tr.after($clone);
-
-                    for (var ij = 0; ij < rowSpan; ij++) {
-                        $clone.after('<tr/>');
-                    }
-                } else {
-                    $tr.after($clone);
-                }
-            } else {
-
-                $tr.find("td").each(function (i) {
-
-                    var tdRowSpan = $(this).attr("rowspan");
-
-                    if (tdRowSpan && parseInt(tdRowSpan) > 1) {
-                        $(this).attr("rowspan", parseInt(tdRowSpan) + 1);
-                        $clone.find("td").eq(i).addClass("removeTd");
-                    }
-                });
-
-                $clone.find("td.removeTd").remove();
-
-                $tr.after($clone);
-            }
-        }
-
-        //么有合并不用处理
-        if (trtdLen == tbtdLen) {
-            return;
-        }
-
-        //DefectIndex 缺失行的索引 
-        $tr.prevUntil().each(function () {
-
-            $(this).find("td").each(function () {
-
-                var $this = $(this);
-
-                var tdRowSpan = $this.attr("rowspan");
-
-                //纯在合并行
-                if (tdRowSpan && parseInt(tdRowSpan) > 1) {
-
-                    var tLeft = $this.offset().left,
-                        index = 0;
-
-                    $.each(TdPosi, function (i, item) {
-                        if (item.X == tLeft) {
-                            index = i;
-                            return false;
-                        }
-                    });
-
-                    var removeIndex = 0;
-                    //如果刚好是缺失的行 行加一  跳出
-                    for (var zp = 0; zp < DefectIndex.length; zp++) {
-                        if (index == DefectIndex[zp]) {
-                            $this.attr("rowspan", parseInt(tdRowSpan) + 1);
-                            DefectIndex.splice(zp, 1);
-                            removeIndex = zp;
-                            break;
-                        }
-                    }
-
-                    var tdColSpan = $this.attr("colspan");
-
-                    //如果缺失的行还有 colspan
-                    if (tdColSpan && parseInt(tdColSpan) > 1) {
-
-                        tdColSpan = parseInt(tdColSpan) - 1;
-
-                        for (var zpl = 0; zpl < tdColSpan; zpl++) {
-
-                            removeIndex += 1;
-
-                            DefectIndex.splice(removeIndex, 1);
-                        }
-                    }
-                }
-
-                //么有了跳出
-                if (DefectIndex.length <= 0) {
-                    return false;
-                }
-            });
-
-            if (DefectIndex.length <= 0) {
-                return false;
-            }
-        });
-    },
-
-    //插入最后
-    insertToLast($fieldItem) {
-
-        var $tr = $("<tr/>"),
-            colspan = 0;
-
-        $fieldItem.find("table tr:first td").each(function () {
-
-            var tdColspan = $(this).attr("colspan");
-            if (tdColspan) {
-                colspan += parseInt(tdColspan);
-            } else {
-                colspan += 1;
-            }
-        });
-
-        for (var i = 0; i < colspan; i++) {
-            $tr.append('<td><div class="tdNull"></div></td>');
-        }
-
-        $fieldItem.find("table").append($tr);
-    },
-
-    /**********************************************************  添加行 end *******************************************************/
-
-    deleteTr($td) {
-
-        if (!$td) {
-            return;
-        }
-
-        var tdRowSpan = $td.attr("rowspan"),
-            $trArr = [],
-            $tr = $td.parent();
-
-        $trArr.push($tr);
-
-        if (tdRowSpan && tdRowSpan > 1) {
-            var row = +tdRowSpan;
-
-            for (var i = 1; i < row; i++) {
-                $trArr.push($trArr[i - 1].next());
-            }
-        }
-
-        var delCount = $trArr.length;
-
-        for (var j = 0; j < delCount; j++) {
-            this.commDeleteTr($trArr[j]);
-        }
-
-        return delCount;
-    },
-
-    //删除行
-    commDeleteTr($tr) {
-
-        //隐藏滚动条 以免添加行后出现 影响td位置计算
-        $("#desiContent").css("overflow", "hidden");
-
-        var $tb = $tr.closest(".tbLayout");
-
-        //插入后处理
-        var tbtdLen = 0,
-            trtdLen = 0;
-
-        //表格td 的 个数
-        $tb.find("tr:first td").each(function () {
-            var tdColspan = $(this).attr("colspan");
-            if (tdColspan) {
-                tbtdLen += parseInt(tdColspan);
-            } else {
-                tbtdLen += 1;
-            }
-        });
-
-        var TdPosi = this.getTdPosi(tbtdLen, $tb),
-            DefectIndex = [],
-            tdCol = 0;
-
-        //当前tr td 的个数 如果一样 不需要处理 不一样 需要递归向上处理
-        $tr.find("td").each(function (i) {
-
-            var tdColspan = $(this).attr("colspan");
-
-            var tLeft = $(this).offset().left;
-
-            if (tdColspan) {
-
-                trtdLen += parseInt(tdColspan);
-
-                for (var c = tdCol; c < tbtdLen; c++) {
-
-                    if (tLeft != TdPosi[c].X) {
-                        tdCol += parseInt(tdColspan);
-                        DefectIndex.push(c);
-                    } else {
-                        tdCol += parseInt(tdColspan);
-                        break;
-                    }
-                }
-            } else {
-
-                trtdLen += 1;
-
-                for (var c = tdCol; c < tbtdLen; c++) {
-
-                    if (tLeft != TdPosi[c].X) {
-                        tdCol += 1;
-                        DefectIndex.push(c);
-                    } else {
-                        tdCol += 1;
-                        break;
-                    }
-                }
-            }
-        });
-
-        //后门还有合并的行
-        if (tdCol < TdPosi.length) {
-            for (var de = tdCol; de < TdPosi.length; de++) {
-                DefectIndex.push(de);
-            }
-        }
-
-        //td 中不止一个元素
-        if ($tr.find("td").length > 0) {
-
-            $tr.find("td").each(function (i) {
-
-                //当前有合并的行需要处理
-                var $this = $(this),
-                    tdRowSpan = $this.attr("rowspan");
-
-                //当前有合并想  合并的行需要移除
-                if (tdRowSpan && parseInt(tdRowSpan) > 1) {
-
-                    var tLeft = $this.offset().left;
-
-                    var $cloneTd = $this.clone();
-                    $cloneTd.attr("rowspan", parseInt(tdRowSpan) - 1);
-
-                    $tr.next().find("td").each(function () {
-
-                        var tsLeft = $(this).offset().left;
-
-                        if (tsLeft > tLeft) {
-                            $(this).before($cloneTd);
-                            return false;
-                        }
-                    });
-
-                    $this.removeAttr("rowspan");
-                }
-            });
-        } else {}
-        // $tr.remove();
-
-
-        //么有合并不用处理
-        if (trtdLen == tbtdLen) {
-            $tr.remove();
-            $("#desiContent").removeAttr("style");
-            return;
-        }
-
-        var $diffRowTr = [];
-
-        //DefectIndex 缺失行的索引 
-        $tr.prevUntil().each(function () {
-
-            $(this).find("td").each(function () {
-
-                var $this = $(this);
-
-                var tdRowSpan = $this.attr("rowspan");
-
-                //纯在合并行
-                if (tdRowSpan && parseInt(tdRowSpan) > 1) {
-
-                    var tLeft = $this.offset().left,
-                        index = 0;
-
-                    $.each(TdPosi, function (i, item) {
-                        if (item.X == tLeft) {
-                            index = i;
-                            return false;
-                        }
-                    });
-
-                    var removeIndex = 0;
-                    //如果刚好是缺失的行 行加一  跳出
-                    for (var zp = 0; zp < DefectIndex.length; zp++) {
-                        if (index == DefectIndex[zp]) {
-                            //$this.attr("rowspan", parseInt(tdRowSpan) - 1); 
-                            $diffRowTr.push($this);
-                            DefectIndex.splice(zp, 1);
-                            removeIndex = zp;
-                            break;
-                        }
-                    }
-
-                    var tdColSpan = $this.attr("colspan");
-
-                    //如果缺失的行还有 colspan
-                    if (tdColSpan && parseInt(tdColSpan) > 1) {
-
-                        tdColSpan = parseInt(tdColSpan) - 1;
-
-                        for (var zpl = 0; zpl < tdColSpan; zpl++) {
-
-                            removeIndex += 1;
-
-                            DefectIndex.splice(removeIndex, 1);
-                        }
-                    }
-                }
-
-                //么有了跳出
-                if (DefectIndex.length <= 0) {
-                    return false;
-                }
-            });
-
-            if (DefectIndex.length <= 0) {
+        $.each(_Index2.default.Controls, function (i, item) {
+            if (item.metaInfo.type == type) {
+                InsControl = item;
                 return false;
             }
         });
 
-        $.each($diffRowTr, function (i, $item) {
-            $item.attr("rowspan", parseInt($item.attr("rowspan")) - 1);
-        });
+        if (InsControl) {
+            return InsControl;
+        }
 
-        $tr.remove();
-        $("#desiContent").removeAttr("style");
+        return InsControl;
     },
 
-    /***********************************************************  行操作 end  ***************************************************************/
 
-    /***********************************************************  列操作 end  ***************************************************************/
+    Controls: {
 
-    insertTd($td) {
+        Basics: _Index4.default,
 
-        if (!$td) {
-            return;
-        }
-
-        //隐藏滚动条 以免添加行后出现 影响td位置计算
-        $("#desiContent").css("overflow", "hidden");
-
-        // 实现原理 先 追加到 最后，然后重新计算位置
-        var $tb = $td.closest(".tbLayout"),
-            newTdW = this.reDiffTdWidth($tb),
-            $newTd = $('<td/>');
-        //新的td
-        //td 有宽度
-        if (newTdW) {
-            $newTd.attr("width", newTdW);
-        }
-        $newTd.append('<div class="default-ele">&nbsp;</div>');
-        var tdStr = $('<div/>').append($newTd).html();
-
-        //追加到最后
-        $tb.find("tr").each(function () {
-            $(this).append(tdStr);
-        });
-
-        //插入后处理
-        var tdOffset = $td.offset(),
-            tdLeft = tdOffset.left,
-            tdRigth = tdOffset.left + $td.width(),
-            breakCount = 0;
-
-        $tb.find("tr").each(function () {
-
-            var $tTr = $(this);
-
-            //跳过  
-            if (breakCount > 0) {
-                $tTr.find("td:last").remove();
-                breakCount--;
-                return true;
-            }
-
-            //遍历没有td 找到 相同位置上的元素
-            $tTr.find("td").each(function () {
-
-                var $eTd = $(this),
-                    Eoffset = $eTd.offset();
-
-                //找到了
-                if (Eoffset.left <= tdLeft && Eoffset.left + $eTd.width() >= tdRigth) {
-
-                    var thisColspan = $eTd.attr("colspan");
-
-                    if (thisColspan && thisColspan > 1) {
-
-                        var newColspan = parseInt(thisColspan) + 1,
-                            thisRowSpan = $eTd.attr("rowspan");
-                        //合并单元格的行
-                        if (thisRowSpan && thisRowSpan > 1) {
-                            //减去当前 这一行
-                            breakCount = parseInt(thisRowSpan) - 1;
-                        }
-
-                        $eTd.attr("colspan", newColspan);
-                    } else {
-                        $eTd.after(tdStr);
-                    }
-
-                    //移除最后一个 是我们自己添加的占位符
-                    $tTr.find("td:last").remove();
-                    //下一行
-                    return false;
-                }
-            });
-        });
-
-        $("#desiContent").removeAttr("style");
-    },
-
-    //重新计算td的宽度
-    reDiffTdWidth($tb) {
-
-        var $fieldItem = $tb.closest(".fieldItem"),
-            isFixedW = $tb.find("tr td:first").attr("width");
-
-        if (isFixedW) {
-
-            var colspan = 0,
-                fwidth = $fieldItem.width(),
-                tbW = 0;
-
-            $fieldItem.find("table tr:first td").each(function () {
-
-                var tdColspan = $(this).attr("colspan");
-                tbW += $(this).width();
-
-                if (tdColspan) {
-                    colspan += parseInt(tdColspan);
-                } else {
-                    colspan += 1;
-                }
-            });
-
-            //添加一列后的宽度 默认 平分的宽度
-            var nW = Math.floor(fwidth / (colspan + 1));
-
-            //重新计算td 的宽度  按比例 减去 宽度
-            $fieldItem.find("table tr td").each(function () {
-
-                var $this = $(this),
-                    tW = parseInt($this.attr("width"));
-
-                tW -= tW / tbW * nW;
-
-                tW = tW > 1 && tW || 1;
-
-                tW = Math.floor(tW);
-
-                $this.attr("width", tW);
-            });
-
-            return nW;
-        }
-
-        //没有计算
-        return false;
-    },
-
-    //删除表格列
-    deleteTd($td) {
-
-        if (!$td || $td.closest("body").length <= 0) {
-            return;
-        }
-
-        //隐藏滚动条 以免添加行后出现 影响td位置计算
-        $("#desiContent").css("overflow", "hidden");
-
-        //实现思路 存在 合并单元格的 处理太复杂 所以 如果有存在合并的 就拆分掉 在 循环遍历处理  一次只删除一个单元格
-
-        var $tb = $td.closest(".tbLayout"),
-            tdColspan = $td.attr("colspan"),
-            tdRowSpan = $td.attr("rowspan"),
-            $tdArr = [];
-
-        //合并单元格的 td
-        if (tdColspan && tdColspan > 1 || tdRowSpan && tdRowSpan > 1) {
-
-            //拆分单元格
-            this.splitCell($td);
-            //动态加载出来的td个数
-            var count = parseInt(tdColspan);
-
-            if (count > 0) {
-                //所有需要删除的td
-                for (var i = 0; i < count; i++) {
-                    if ($tdArr.length > 0) {
-                        $tdArr.push($tdArr[i - 1].next());
-                    } else {
-                        $tdArr.push($td);
-                    }
-                }
-            } else {
-                $tdArr.push($td);
-            }
-        } else {
-            $tdArr.push($td);
-        }
-
-        var delCol = 0,
-            self = this;
-
-        $.each($tdArr, function () {
-
-            var $this = this,
-                removeOffset = $this.offset(),
-                rLeft = removeOffset.left,
-                tw = $this.width(),
-                rRight = removeOffset.left + tw,
-
-            //缓存td的操作 避免 即时操作 表格变形
-            cacheOpTds = [];
-
-            //保留一列 不让删除
-            if ($tb.find("tr:first td").length <= 1) {
-                $tb.closest(".fieldItem").find(".btnDelField").click();
-                return false;
-            }
-
-            $tb.find("tr").each(function () {
-
-                //遍历没有td 找到 相同位置上的元素
-                $(this).find("td").each(function () {
-
-                    var $eTd = $(this),
-                        Eoffset = $eTd.offset();
-
-                    //找到了
-                    if (Eoffset.left <= rLeft && Eoffset.left + $eTd.width() >= rRight) {
-
-                        var thisColspan = $eTd.attr("colspan");
-
-                        if (thisColspan && thisColspan > 1) {
-
-                            var newColspan = parseInt(thisColspan) - 1;
-
-                            cacheOpTds.push({
-                                $el: $eTd,
-                                type: "colspan",
-                                colSpan: newColspan
-                            });
-                        } else {
-                            cacheOpTds.push({
-                                $el: $eTd,
-                                type: "remove"
-                            });
-                        }
-                        //下一行
-                        return false;
-                    }
-                });
-            });
-
-            //进行真实的操作 没一列 进行一次操作
-            $.each(cacheOpTds, function () {
-                if (this.type == "remove") {
-                    //平均分列宽
-                    self.CellAverage(this.$el);
-                    this.$el.remove();
-                } else {
-
-                    //减去删除的宽度
-                    var newW = this.$el.width() - tw;
-                    this.$el.attr("colspan", this.colSpan).attr("width", newW);
-                }
-            });
-
-            delCol++;
-        });
-
-        var $txtCol = $("#controlAttrs .txtCol");
-        $txtCol.val(parseInt($txtCol.val()) - delCol);
-
-        //清除滚动条
-        $("#desiContent").removeAttr("style");
-    },
-
-    //平均分移除td的宽度
-    CellAverage($td) {
-
-        var $tds = $td.siblings(),
-            nW = $td.width(),
-            tbW = $td.parent().width() - nW;
-
-        //重新计算td 的宽度  按比例 减去 宽度
-        $tds.each(function () {
-
-            var $this = $(this),
-                tW = parseInt($this.attr("width"));
-
-            tW += tW / tbW * nW;
-
-            tW = Math.floor(tW);
-
-            $this.attr("width", tW);
-        });
-    },
-
-    //拆分单元格
-    splitCell($td) {
-
-        //td 总行数
-        var $tb = $td.closest('.tbLayout'),
-            tbtdLen = 0,
-            thisColspan = $td.attr("colspan");
-
-        //表格td 的 个数
-        $tb.find("tr:first td").each(function () {
-            var tdColspan = $(this).attr("colspan");
-            if (tdColspan) {
-                tbtdLen += parseInt(tdColspan);
-            } else {
-                tbtdLen += 1;
-            }
-        });
-
-        //每个td的位置
-        var TdPosi = this.getTdPosi(tbtdLen, $tb),
-            tdOffset = $td.offset(),
-            tdRowSpan = $td.attr("rowspan"),
-            index = 0;
-
-        $.each(TdPosi, function (i, item) {
-            //找到了
-            if (item.X == tdOffset.left) {
-                index = i;
-                return false;
-            }
-        });
-
-        var strTd = '',
-            firstTd = '<td width="' + TdPosi[index].W + '"><div class="tdNull">&nbsp;</div></td>',
-            firstW = TdPosi[index].W;
-
-        index++;
-
-        for (var j = 1; j < thisColspan; j++) {
-            strTd += '<td width="' + TdPosi[index].W + '"><div class="tdNull">&nbsp;</div></td>';
-            index++;
-        }
-
-        if (tdRowSpan > 1) {
-
-            //所有需要处理的tr
-            var $tr = $td.parent(),
-                $trArr = [];
-
-            for (var k = 1; k < tdRowSpan; k++) {
-
-                if ($trArr.length > 0) {
-                    $trArr.push($trArr[k - 2].next());
-                } else {
-                    $trArr.push($tr.next());
-                }
-            }
-
-            //反转 从最后一个开始处理
-            $trArr.reverse();
-
-            if (thisColspan == tbtdLen) {
-
-                $.each($trArr, function () {
-                    var $this = this,
-                        newRowspan = parseInt($td.attr("rowspan")) - 1;
-                    $this.append(firstTd + strTd);
-                    $td.attr("rowspan", newRowspan).removeAttr("height");
-                });
-            } else {
-
-                $.each($trArr, function () {
-
-                    var $this = this;
-
-                    $this.find("td").each(function () {
-
-                        var $ttd = $(this),
-                            nextLen = $ttd.next().length,
-                            isOffsetF = $ttd.offset().left > tdOffset.left;
-
-                        //找到 或者 最后 加到最后 因为合并单元格在最后
-                        if (isOffsetF || nextLen <= 0) {
-
-                            var newRowspan = parseInt($td.attr("rowspan")) - 1;
-
-                            if (!isOffsetF) {
-                                $ttd.after(firstTd + strTd);
-                            } else {
-                                $ttd.before(firstTd + strTd);
-                            }
-
-                            $td.attr("rowspan", newRowspan).removeAttr("height");
-
-                            return false;
-                        }
-                    });
-                });
-            }
-
-            //当合并 列 大于一的时候 才对原始td进行colspan操作
-            if (thisColspan > 1) {
-                //原本的td处理
-                $td.after(strTd);
-                $td.attr("width", firstW).attr("colspan", 1);
-            }
-        } else {
-            $td.after(strTd);
-            $td.attr("width", firstW).attr("colspan", 1);
-        }
+        LayOut: _Index2.default
     }
 
 };
 
-/* harmony default export */ var Props_CellOp = (CellOp);
-// CONCATENATED MODULE: ./src/Form/Controls/LayOut/Table/Props/Index.js
+exports.default = AllControls;
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
-var Props = {
+var _Index = __webpack_require__(8);
 
-    //设置行列
-    setColRow($fieldItem) {
+var _Index2 = _interopRequireDefault(_Index);
 
-        //html
-        var $colRow = $(DefHtml.colRow),
-            col = $fieldItem.find("th").length,
-            row = $fieldItem.find("tbody tr").length;
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-        $colRow.find(".txtRow").val(row);
-        $colRow.find(".txtCol").val(col);
+var LayOut = {
 
-        var that = this;
-
-        //确定
-        $colRow.on("click", ".btnSet", function () {
-
-            var newRow = parseInt($colRow.find(".txtRow").val()),
-                newCol = parseInt($colRow.find(".txtCol").val());
-
-            //输入有误
-            if (!newRow || !newCol) {
-                col = $fieldItem.find("th").length, row = $fieldItem.find("tbody tr").length;
-                $colRow.find(".txtRow").val(row);
-                $colRow.find(".txtCol").val(col);
-                return;
-            }
-
-            var $oldFieldItem = $fieldItem.find(".fieldItem"),
-                $newEl = that.render(newRow, newCol);
-
-            $fieldItem.find(".tbLayout").html($newEl.find(".tbLayout").html());
-
-            var op = $(this).attr("op");
-
-            //不是重置 恢复数据
-            if (op != 'reset') {
-
-                $fieldItem.find("td").each(function (i) {
-
-                    var $this = $(this);
-                    if ($this.hasClass("seatLast")) {
-                        return true;
-                    }
-
-                    if ($oldFieldItem[i]) {
-                        $this.html($oldFieldItem[i]);
-                    }
-                });
-            }
-        });
-
-        return $colRow;
+    metaInfo: {
+        title: "布局"
     },
 
-    //表格设置
-    tbSet($fieldItem) {
+    Controls: [_Index2.default],
 
-        var $tbSet = $(DefHtml.tbSet);
-
-        //操作
-        $tbSet.on("click", ".btnNorMal", function () {
-
-            var type = $(this).attr("type");
-            if (type == "rowcolspan") {
-                Props_CellOp.rowColSpan($fieldItem.find(".tbLayout"));
-            }
-        });
-
-        return $tbSet;
+    addControl: function addControl(control) {
+        this.Controls.push(control);
     }
-
 };
 
-/* harmony default export */ var Props_Index = (Props);
-// CONCATENATED MODULE: ./src/Form/Controls/LayOut/Table/Events/DropTo.js
-var DropTo_DropTo = {
+exports.default = LayOut;
 
-    //入口
-    init($tb) {
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
 
-        var that = this;
+"use strict";
 
-        //hover 显示resize
-        $tb.on("mousemove", "th", function (event) {
 
-            var $this = $(this),
-                $tb = $this.closest(".tbLayout");
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
-            $tb.find(".ewResize").removeClass("ewResize");
+__webpack_require__(9);
 
-            that.tdCellWidth($this, event);
+var _Index = __webpack_require__(10);
 
-            return;
-        });
+var _Index2 = _interopRequireDefault(_Index);
 
-        //td 选中
-        $tb.on("mousedown", "th.ewResize", function (event) {
-            that.tdMoveChangeCellWidth($(this), event);
-        });
+var _autosize = __webpack_require__(0);
 
-        //td 框选
-        $tb.on("mousedown", "td", function (event) {
+var _autosize2 = _interopRequireDefault(_autosize);
 
-            that.bindSelectionTdEvent({
-                initX: event.pageX,
-                initY: event.pageY,
-                $table: $(this).closest("table")
-            });
-        });
-    },
+var _Index3 = __webpack_require__(12);
 
-    //拖动列宽
-    tdCellWidth($el, event) {
+var _Index4 = _interopRequireDefault(_Index3);
 
-        var eOffset = $el.offset(),
-            eW = $el.width(),
-            pageX = event.pageX,
-            isFirst = $el.prev().length <= 0 && true || false,
-            isLast = $el.next().length <= 0 && true || false;
+var _Index5 = __webpack_require__(15);
 
-        if (!isFirst) {
+var _Index6 = _interopRequireDefault(_Index5);
 
-            if (pageX > eOffset.left && pageX < eOffset.left + 10) {
-                $el.addClass("ewResize");
-                $el.data("ewdirc", "left");
-                return;
-            } else {
-                $el.removeClass("ewResize");
-            }
-        }
-
-        if (!isLast) {
-            var tdW = eOffset.left + eW;
-            if (pageX < tdW && pageX > tdW - 10) {
-                $el.addClass("ewResize");
-                $el.addClass("ewResize");
-                $el.data("ewdirc", "right");
-            } else {
-                $el.removeClass("ewResize");
-            }
-        }
-    },
-
-    //拖拽改变大小
-    tdMoveChangeCellWidth($el, event) {
-
-        //没有合并过
-        if (!$el.attr("width")) {
-
-            //设置宽度
-            $el.closest(".tbLayout").find("th").each(function () {
-                var $this = $(this);
-                $this.attr("width", $this.width());
-            });
-        }
-
-        var {
-            pageX: sourceX
-        } = event,
-            that = this,
-            ewdirc = $el.data("ewdirc"),
-            sourceW = parseInt($el.attr("width"));
-
-        $(window).on("mousemove.ewResize", function (event) {
-
-            var diffX = event.pageX - sourceX;
-
-            if (diffX == 0) {
-                return;
-            }
-
-            if (ewdirc != "left") {
-
-                var newW = sourceW + diffX,
-                    diffTdW = newW - parseInt($el.attr("width"));
-
-                if (newW < 1) {
-                    return;
-                }
-
-                var nextW = parseInt($el.next().attr("width")) - diffTdW,
-                    elW = parseInt($el.attr("width")) + diffTdW;
-
-                //宽度小于1  不用处理
-                if (nextW < 2 || elW < 2) {
-                    return false;
-                }
-
-                $el.next().width(nextW);
-                $el.width(elW);
-
-                //that.setTdWidth(tdArr);
-            } else {
-
-                var newW = sourceW - diffX,
-                    diffTdW = newW - parseInt($el.attr("width"));
-
-                if (newW < 1) {
-                    return;
-                }
-
-                var prevW = parseInt($el.prev().attr("width")) - diffTdW,
-                    elW = parseInt($el.attr("width")) + diffTdW;
-
-                //宽度小于1  不用处理
-                if (prevW < 2 || elW < 2) {
-                    tdArr = [];
-                    return false;
-                }
-
-                $el.prev().width(prevW);
-                $el.width(elW);
-                //that.setTdWidth(tdArr);
-            }
-
-            return false;
-        });
-
-        $(window).on("mouseup.ewResize", function () {
-            $(window).off("mousemove.ewResize");
-            $(window).off("mouseup.ewResize");
-            $(".tbLayout .ewResize").removeClass("ewResize");
-        });
-    },
-
-    //绑定td合并前的选中
-    bindSelectionTdEvent: function (initPoint) {
-
-        $("body").addClass("noSelected");
-
-        //initPoint  初始化 位置 
-        var that = this,
-            $selectionBox = false;
-
-        $(window).on("mousemove.selectionTd", function (event) {
-
-            var newX = event.pageX,
-                newY = event.pageY,
-                w = newX - initPoint.initX,
-                h = newY - initPoint.initY,
-                styleObj = {
-                width: w,
-                height: h,
-                left: initPoint.initX,
-                top: initPoint.initY
-            };
-
-            if (initPoint.initX == newX && initPoint.initY == newY) {
-                return false;
-            }
-
-            if ($("#selectionBox").length <= 0) {
-                $("body").append("<div id='selectionBox'></div>");
-                $selectionBox = $("#selectionBox");
-            }
-
-            if (w < 0) {
-
-                styleObj.left = initPoint.initX + w;
-                w = Math.abs(w);
-                styleObj.width = w;
-            }
-
-            if (h < 0) {
-                styleObj.top = initPoint.initY + h;
-                h = Math.abs(h);
-                styleObj.height = h;
-            }
-
-            $selectionBox.css(styleObj);
-
-            //计算
-            that.diffSelectionTd(styleObj, initPoint.$table);
-            return false;
-        });
-
-        $(window).on("mouseup.selectionTd", function () {
-
-            $(window).off("mousemove.selectionTd");
-
-            $(window).off("mouseup.selectionTd");
-
-            $selectionBox && $selectionBox.remove();
-
-            $("body").removeClass("noSelected");
-
-            $("body").one("click", function () {
-                initPoint.$table.find(".active").removeClass("active");
-            });
-        });
-    },
-
-    //计算选中的td
-    diffSelectionTd: function (styleObj, $table) {
-
-        var that = this;
-        //遍历所有的td  
-        $table.find("td").each(function () {
-
-            var $td = $(this),
-                cX = $td.offset().left,
-                cY = $td.offset().top,
-                cW = $td.width(),
-                cH = $td.height(),
-                isInTop = cX < styleObj.left && cX + cW > styleObj.left || cX > styleObj.left && cX < styleObj.left + styleObj.width;
-
-            if (!isInTop) {
-                $td.removeClass("active");
-                return true;
-            }
-
-            if (cY < styleObj.top && cY + cH > styleObj.top || cY > styleObj.top && cY < styleObj.top + styleObj.height) {
-                if (!$td.hasClass("seatLast")) {
-                    $td.addClass("active");
-                }
-
-                //横向
-                if ($td.attr("colspan")) {
-                    var newRight = cX + cW;
-                    if (newRight > styleObj.left + styleObj.width) {
-
-                        styleObj.width = newRight - styleObj.left;
-
-                        that.diffSelectionTd(styleObj, $table);
-
-                        return false;
-                    } else if (cX < styleObj.left) {
-
-                        styleObj.width = styleObj.left + styleObj.width - cX - 1;
-                        //因为是小于 所以要去掉一
-                        styleObj.left = cX - 1;
-
-                        that.diffSelectionTd(styleObj, $table);
-
-                        return false;
-                    }
-                }
-
-                //纵向
-                if ($td.attr("rowspan")) {
-
-                    var newBottom = cY + cH;
-
-                    if (newBottom > styleObj.top + styleObj.height) {
-
-                        styleObj.height = newBottom - styleObj.top;
-
-                        that.diffSelectionTd(styleObj, $table);
-
-                        return false;
-                    }
-                }
-            } else {
-                $td.removeClass("active");
-            }
-        });
-    }
-
-};
-
-/* harmony default export */ var Events_DropTo = (DropTo_DropTo);
-// CONCATENATED MODULE: ./src/Form/Controls/LayOut/Table/Events/Index.js
-
-
-var Events = {
-  DropTo: Events_DropTo
-};
-
-/* harmony default export */ var Events_Index = (Events);
-// CONCATENATED MODULE: ./src/Form/Controls/LayOut/Table/Index.js
-
-
-
-
-
-
-
-
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var TableControl = {
 
@@ -1915,10 +990,9 @@ var TableControl = {
         title: "用于页面布局，允许合并单元格"
     },
 
-    PrivateProps: Props_Index,
+    PrivateProps: _Index4.default,
 
-    //默认绘制表格数据
-    defaultData(rowLen, cellLen) {
+    defaultData: function defaultData(rowLen, cellLen) {
 
         var rows = [],
             head = [];
@@ -1968,8 +1042,7 @@ var TableControl = {
         };
     },
 
-    //渲染
-    render: function (data) {
+    render: function render(data) {
 
         if (!data || arguments.length > 1) {
             var deData = this.defaultData.apply(this, arguments);
@@ -1978,23 +1051,18 @@ var TableControl = {
 
         var $fieldItem = $('<div class="fieldItem" /> ');
 
-        //渲染列
         this.renderCell($fieldItem, data);
 
-        //自动到不 textinput
-        autosize_default()($fieldItem.find(".txtInput"));
+        (0, _autosize2.default)($fieldItem.find(".txtInput"));
 
-        //设计模式
         if (this.$$root.Settings.mode == "desi") {
-            //拖拽改变宽度
-            Events_Index.DropTo.init($fieldItem);
+            _Index6.default.DropTo.init($fieldItem);
         }
 
         return $fieldItem;
     },
 
-    //渲染列
-    renderCell($fieldItem, data) {
+    renderCell: function renderCell($fieldItem, data) {
 
         var $tb = $('<table class="tbLayout" />'),
             $$root = this.$$root;
@@ -2061,23 +1129,21 @@ var TableControl = {
                     $tr.append('<th>TT</th>');
                 });
 
+                $tr.append('<th class="seatLast" />');
+
                 $tb.find("thead").append($tr);
             });
         }
 
         $fieldItem.append($tb);
     },
-
-    //渲染属性
-    renderProps() {
+    renderProps: function renderProps() {
 
         var $setProps = this.$$root.find(".setProps"),
             $fieldItem = this.$$root.find(".fieldItem.selected");
 
-        //清空
         $setProps.empty();
 
-        //行列数
         var $group = this.genGroup({
             className: "setRowCol",
             title: "行列数"
@@ -2093,43 +1159,1387 @@ var TableControl = {
 
         $setProps.append($group);
     },
+    destroy: function destroy() {}
+};
 
-    //销毁
-    destroy() {}
+Object.setPrototypeOf(TableControl, _Index2.default);
+
+exports.default = TableControl;
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+        value: true
+});
+
+var _AttrHtml = __webpack_require__(11);
+
+var _AttrHtml2 = _interopRequireDefault(_AttrHtml);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var BaseControl = {
+        genGroup: function genGroup(groupItem) {
+
+                var $groupItem = $('<div class="attrItem" />');
+
+                if (groupItem.className) {
+                        $groupItem.addClass(groupItem.className);
+                }
+
+                if (groupItem.title) {
+                        $groupItem.append('<div class="attrTitle">' + groupItem.title + '</div>');
+                }
+
+                return $groupItem;
+        },
+        genTitle: function genTitle() {
+                var $title = $(_AttrHtml2.default.title);
+
+                $title.on("keyup", function () {});
+
+                return $title;
+        },
+        genHideTitle: function genHideTitle() {
+
+                var $hideTitle = $(_AttrHtml2.default.hideTitle);
+
+                $hideTitle.on("keyup", function () {});
+
+                return $hideTitle;
+        },
+        genplaceHolder: function genplaceHolder() {
+
+                var $placeHolder = $(_AttrHtml2.default.placeHolder);
+
+                $placeHolder.on("keyup", function () {});
+
+                return $placeHolder;
+        }
+};
+
+exports.default = BaseControl;
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+
+var AttrHtml = {
+    title: '<div class="optItem"><input maxlength="50" type="text" class="txtTitle" /></div>',
+
+    hideTitle: '<div class="optItem"><label class="attrLab"><input class="ckHideBox" type="checkbox"> 隐藏标题 </label></div>',
+
+    placeHolder: '<div class="optItem"><input type="text" class="txtPlaceHolder"></div>',
+
+    required: '<div class="optItem"><label class="attrLab"><input class="ckBox" type="checkbox"> 这个是必填项目 </label></div>',
+
+    layout: '<div class="optItem"><label class="attrLab"><input name="setRowCol" checked="true" class="ckLayOut" key="row" type="radio"> 横向 </label>' + '<label class="attrLab"><input key="col" name="setRowCol" class="ckLayOut" type="radio"> 纵向 </label></div>'
 
 };
 
-Object.setPrototypeOf(TableControl, Base_Index);
+exports.default = AttrHtml;
 
-/* harmony default export */ var Table_Index = (TableControl);
-// CONCATENATED MODULE: ./src/Form/Controls/LayOut/Index.js
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
-var LayOut = {
+var _DefHtml = __webpack_require__(13);
 
-    metaInfo: {
-        title: "布局"
+var _DefHtml2 = _interopRequireDefault(_DefHtml);
+
+var _CellOp = __webpack_require__(14);
+
+var _CellOp2 = _interopRequireDefault(_CellOp);
+
+var _autosize = __webpack_require__(0);
+
+var _autosize2 = _interopRequireDefault(_autosize);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var Props = {
+    setColRow: function setColRow($fieldItem) {
+        var $colRow = $(_DefHtml2.default.colRow),
+            col = $fieldItem.find("th").length,
+            row = $fieldItem.find("tbody tr").length;
+
+        $colRow.find(".txtRow").val(row);
+        $colRow.find(".txtCol").val(col);
+
+        var that = this;
+
+        $colRow.on("click", ".btnSet", function () {
+
+            var newRow = parseInt($colRow.find(".txtRow").val()),
+                newCol = parseInt($colRow.find(".txtCol").val());
+
+            if (!newRow || !newCol) {
+                col = $fieldItem.find("th").length, row = $fieldItem.find("tbody tr").length;
+                $colRow.find(".txtRow").val(row);
+                $colRow.find(".txtCol").val(col);
+                return;
+            }
+
+            var $oldFieldItem = $fieldItem.find(".fieldItem"),
+                $newEl = that.render(newRow, newCol);
+
+            $fieldItem.find(".tbLayout").html($newEl.find(".tbLayout").html());
+
+            (0, _autosize2.default)($fieldItem.find(".txtInput"));
+
+            var op = $(this).attr("op");
+
+            if (op != 'reset') {
+
+                $fieldItem.find("td").each(function (i) {
+
+                    var $this = $(this);
+                    if ($this.hasClass("seatLast")) {
+                        return true;
+                    }
+
+                    if ($oldFieldItem[i]) {
+                        $this.html($oldFieldItem[i]);
+                    }
+                });
+            }
+        });
+
+        return $colRow;
+    },
+    tbSet: function tbSet($fieldItem) {
+
+        var $tbSet = $(_DefHtml2.default.tbSet);
+
+        _CellOp2.default.$$root = this.$$root;
+
+        $tbSet.on("click", ".btnNorMal", function () {
+
+            var type = $(this).attr("type");
+
+            if (_CellOp2.default[type]) {
+                _CellOp2.default[type]($fieldItem.find(".tbLayout"));
+            }
+        });
+
+        return $tbSet;
+    }
+};
+
+exports.default = Props;
+
+/***/ }),
+/* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+
+var AttrHtml = {
+
+    colRow: '<div class="optItem"><input class="txtShort txtRow" type="text"><span class="desc">行</span>' + '<span class="gap">×</span><input type="text" class="txtShort txtCol"><span class="desc">列</span>' + '<span type="tbSet" class="btnNorMal ThemeBorderColorLightHover ThemeColorLightHover btnSet">设定</span>' + '<span type="tbSet" op="reset" class="btnNorMal ThemeBorderColorLightHover ThemeColorLightHover btnSet">重置</span></div>',
+
+    tbSet: '<div class="optItem"><span type="rowColSpan" class="btnHandleMal btnNorMal ThemeBorderColorLightHover ThemeColorLightHover">合并单元格</span>' + '<span type="splitCell" class="btnHandleMal btnNorMal ThemeBorderColorLightHover ThemeColorLightHover">拆分单元格</span>' + '<span type="insertTr" class="btnHandleMal addRow btnNorMal ThemeBorderColorLightHover ThemeColorLightHover">添加行</span>' + '<span type="insertTd" class="btnHandleMal addCol btnNorMal ThemeBorderColorLightHover ThemeColorLightHover">添加列</span>' + '<span type="deleteTr" class="btnHandleMal delRow btnNorMal ThemeBorderColorLightHover ThemeColorLightHover">删除行</span>' + '<span type="deleteTd" class="btnHandleMal delColTable btnNorMal ThemeBorderColorLightHover ThemeColorLightHover">删除列</span></div>'
+
+};
+
+exports.default = AttrHtml;
+
+/***/ }),
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _autosize = __webpack_require__(0);
+
+var _autosize2 = _interopRequireDefault(_autosize);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var CellOp = {
+    rowColSpan: function rowColSpan($tb) {
+
+        if ($tb.find("td.active").length <= 1) {
+            return;
+        }
+
+        var colspan = 0,
+            rowSpan = 0,
+            $tr = $tb.find("td.active:first").closest("tr"),
+            $trs = $tb.find("td.active").closest("tr");
+
+        $tr.find("td.active").each(function () {
+            var tdColspan = $(this).attr("colspan");
+            if (tdColspan) {
+                colspan += parseInt(tdColspan);
+            } else {
+                colspan += 1;
+            }
+        });
+
+        $trs.each(function () {
+            var tdRowSpan = $(this).find("td.active:first").attr("rowspan");
+            if (tdRowSpan && $(this).next().find("td.active").length <= 0) {
+                rowSpan += parseInt(tdRowSpan);
+            } else {
+                rowSpan += 1;
+            }
+        });
+
+        var $firstTd = $tb.find("td.active:first");
+
+        $firstTd.attr("rowspan", rowSpan).attr("colspan", colspan).removeClass("active");
+
+        $tb.find("td.active").remove();
     },
 
-    Controls: [Table_Index],
+    getTdPosi: function getTdPosi($tb) {
 
-    addControl(control) {
+        var $firstTr = $tb.find("thead tr:first"),
+            TdsWidth = [];
+
+        $firstTr.find("th").each(function (i) {
+
+            var $this = $(this);
+
+            TdsWidth.push({
+                $td: $this,
+                X: $this.offset().left,
+                W: $this.width()
+            });
+        });
+
+        return TdsWidth;
+    },
+    insertTr: function insertTr($tb) {
+
+        var $td = $tb.find("td.active:first"),
+            $tr = false;
+        if ($td.length <= 0) {
+            this.insertToLast($tb);
+            return;
+        } else {
+            $tr = $td.closest("tr");
+        }
+
+        var tbtdLen = $tb.find("thead tr:first th").length,
+            trtdLen = 0;
+
+        var TdPosi = this.getTdPosi($tb),
+            DefectIndex = [],
+            tdCol = 0;
+
+        $tr.find("td").each(function (i) {
+
+            var tdColspan = $(this).attr("colspan");
+
+            var tLeft = $(this).offset().left;
+
+            if (tdColspan) {
+
+                trtdLen += parseInt(tdColspan);
+
+                for (var c = tdCol; c < tbtdLen; c++) {
+
+                    if (tLeft != TdPosi[c].X) {
+                        tdCol += parseInt(tdColspan);
+                        DefectIndex.push(c);
+                    } else {
+                        tdCol += parseInt(tdColspan);
+                        break;
+                    }
+                }
+            } else {
+
+                trtdLen += 1;
+
+                for (var c = tdCol; c < tbtdLen; c++) {
+
+                    if (tLeft != TdPosi[c].X) {
+                        tdCol += 1;
+                        DefectIndex.push(c);
+                    } else {
+                        tdCol += 1;
+                        break;
+                    }
+                }
+            }
+        });
+
+        if (tdCol < TdPosi.length) {
+            for (var de = tdCol; de < TdPosi.length; de++) {
+                DefectIndex.push(de);
+            }
+        }
+
+        var $clone = $tr.clone(false, false).find("td").html('<div class="tdNull"></div>').parent(),
+            isHasRowSpan = false;
+
+        if ($clone.find("td").length != 1) {
+
+            $clone.find("td").each(function () {
+                if ($(this).attr("rowspan")) {
+                    isHasRowSpan = true;
+                    return false;
+                }
+            });
+        }
+
+        if ($tr.find("td").length > 0) {
+
+            if (trtdLen == tbtdLen && !isHasRowSpan) {
+
+                var rowSpan = $tr.find("td:first").attr("rowspan");
+
+                if (rowSpan) {
+
+                    rowSpan = parseInt(rowSpan) - 1;
+
+                    for (var ix = 0; ix < rowSpan; ix++) {
+                        $tr = $tr.next();
+                    }
+
+                    $tr.after($clone);
+
+                    for (var ij = 0; ij < rowSpan; ij++) {
+                        $clone.after('<tr/>');
+                    }
+                } else {
+                    $tr.after($clone);
+                }
+            } else {
+
+                $tr.find("td").each(function (i) {
+
+                    var tdRowSpan = $(this).attr("rowspan");
+
+                    if (tdRowSpan && parseInt(tdRowSpan) > 1) {
+                        $(this).attr("rowspan", parseInt(tdRowSpan) + 1);
+                        $clone.find("td").eq(i).addClass("removeTd");
+                    }
+                });
+
+                $clone.find("td.removeTd").remove();
+
+                $tr.after($clone);
+            }
+        }
+
+        if (trtdLen == tbtdLen) {
+            return;
+        }
+
+        $tr.prevUntil().each(function () {
+
+            $(this).find("td").each(function () {
+
+                var $this = $(this);
+
+                var tdRowSpan = $this.attr("rowspan");
+
+                if (tdRowSpan && parseInt(tdRowSpan) > 1) {
+
+                    var tLeft = $this.offset().left,
+                        index = 0;
+
+                    $.each(TdPosi, function (i, item) {
+                        if (item.X == tLeft) {
+                            index = i;
+                            return false;
+                        }
+                    });
+
+                    var removeIndex = 0;
+
+                    for (var zp = 0; zp < DefectIndex.length; zp++) {
+                        if (index == DefectIndex[zp]) {
+                            $this.attr("rowspan", parseInt(tdRowSpan) + 1);
+                            DefectIndex.splice(zp, 1);
+                            removeIndex = zp;
+                            break;
+                        }
+                    }
+
+                    var tdColSpan = $this.attr("colspan");
+
+                    if (tdColSpan && parseInt(tdColSpan) > 1) {
+
+                        tdColSpan = parseInt(tdColSpan) - 1;
+
+                        for (var zpl = 0; zpl < tdColSpan; zpl++) {
+
+                            removeIndex += 1;
+
+                            DefectIndex.splice(removeIndex, 1);
+                        }
+                    }
+                }
+
+                if (DefectIndex.length <= 0) {
+                    return false;
+                }
+            });
+
+            if (DefectIndex.length <= 0) {
+                return false;
+            }
+        });
+    },
+    insertToLast: function insertToLast($tb) {
+
+        var $tr = $("<tr/>"),
+            colspan = $tb.find("thead tr:first th").length;
+
+        for (var i = 0; i < colspan; i++) {
+            var $td = $('<td/>');
+            $td.append(this.$$root.AllControls.getControlByType("TextInput").render());
+            $tr.append($td);
+        }
+
+        $tb.find("tbody").append($tr);
+
+        (0, _autosize2.default)($tr.find(".txtInput"));
+    },
+    deleteTr: function deleteTr($tb) {
+
+        var $active = $tb.find("tbody .active");
+
+        if ($active.length > 0) {
+            var that = this;
+            $active.each(function () {
+                that.deleteTrComm($(this));
+            });
+        } else {
+            this.deleteTrComm($tb.find("tbody tr:last td:first"));
+        }
+    },
+    deleteTrComm: function deleteTrComm($td) {
+
+        if (!$td) {
+            return;
+        }
+
+        var tdRowSpan = $td.attr("rowspan"),
+            $trArr = [],
+            $tr = $td.parent();
+
+        $trArr.push($tr);
+
+        if (tdRowSpan && tdRowSpan > 1) {
+            var row = +tdRowSpan;
+
+            for (var i = 1; i < row; i++) {
+                $trArr.push($trArr[i - 1].next());
+            }
+        }
+
+        var delCount = $trArr.length;
+
+        for (var j = 0; j < delCount; j++) {
+            this.commDeleteTr($trArr[j]);
+        }
+
+        return delCount;
+    },
+    commDeleteTr: function commDeleteTr($tr) {
+
+        var $tb = $tr.closest(".tbLayout");
+
+        var tbtdLen = $tb.find("thead tr:first th").length,
+            trtdLen = 0;
+
+        var TdPosi = this.getTdPosi($tb),
+            DefectIndex = [],
+            tdCol = 0;
+
+        $tr.find("td").each(function (i) {
+
+            var tdColspan = $(this).attr("colspan");
+
+            var tLeft = $(this).offset().left;
+
+            if (tdColspan) {
+
+                trtdLen += parseInt(tdColspan);
+
+                for (var c = tdCol; c < tbtdLen; c++) {
+
+                    if (tLeft != TdPosi[c].X) {
+                        tdCol += parseInt(tdColspan);
+                        DefectIndex.push(c);
+                    } else {
+                        tdCol += parseInt(tdColspan);
+                        break;
+                    }
+                }
+            } else {
+
+                trtdLen += 1;
+
+                for (var c = tdCol; c < tbtdLen; c++) {
+
+                    if (tLeft != TdPosi[c].X) {
+                        tdCol += 1;
+                        DefectIndex.push(c);
+                    } else {
+                        tdCol += 1;
+                        break;
+                    }
+                }
+            }
+        });
+
+        if (tdCol < TdPosi.length) {
+            for (var de = tdCol; de < TdPosi.length; de++) {
+                DefectIndex.push(de);
+            }
+        }
+
+        if ($tr.find("td").length > 0) {
+
+            $tr.find("td").each(function (i) {
+                var $this = $(this),
+                    tdRowSpan = $this.attr("rowspan");
+
+                if (tdRowSpan && parseInt(tdRowSpan) > 1) {
+
+                    var tLeft = $this.offset().left;
+
+                    var $cloneTd = $this.clone();
+                    $cloneTd.attr("rowspan", parseInt(tdRowSpan) - 1);
+
+                    $tr.next().find("td").each(function () {
+
+                        var tsLeft = $(this).offset().left;
+
+                        if (tsLeft > tLeft) {
+                            $(this).before($cloneTd);
+                            return false;
+                        }
+                    });
+
+                    $this.removeAttr("rowspan");
+                }
+            });
+        } else {}
+
+        if (trtdLen == tbtdLen) {
+            $tr.remove();
+            $("#desiContent").removeAttr("style");
+            return;
+        }
+
+        var $diffRowTr = [];
+
+        $tr.prevUntil().each(function () {
+
+            $(this).find("td").each(function () {
+
+                var $this = $(this);
+
+                var tdRowSpan = $this.attr("rowspan");
+
+                if (tdRowSpan && parseInt(tdRowSpan) > 1) {
+
+                    var tLeft = $this.offset().left,
+                        index = 0;
+
+                    $.each(TdPosi, function (i, item) {
+                        if (item.X == tLeft) {
+                            index = i;
+                            return false;
+                        }
+                    });
+
+                    var removeIndex = 0;
+
+                    for (var zp = 0; zp < DefectIndex.length; zp++) {
+                        if (index == DefectIndex[zp]) {
+                            $diffRowTr.push($this);
+                            DefectIndex.splice(zp, 1);
+                            removeIndex = zp;
+                            break;
+                        }
+                    }
+
+                    var tdColSpan = $this.attr("colspan");
+
+                    if (tdColSpan && parseInt(tdColSpan) > 1) {
+
+                        tdColSpan = parseInt(tdColSpan) - 1;
+
+                        for (var zpl = 0; zpl < tdColSpan; zpl++) {
+
+                            removeIndex += 1;
+
+                            DefectIndex.splice(removeIndex, 1);
+                        }
+                    }
+                }
+
+                if (DefectIndex.length <= 0) {
+                    return false;
+                }
+            });
+
+            if (DefectIndex.length <= 0) {
+                return false;
+            }
+        });
+
+        $.each($diffRowTr, function (i, $item) {
+            $item.attr("rowspan", parseInt($item.attr("rowspan")) - 1);
+        });
+
+        $tr.remove();
+    },
+    insertTd: function insertTd($tb) {
+
+        var $td = $tb.find("td.active:first");
+
+        if ($td.length <= 0) {
+            $td = $tb.find("thead tr th.seatLast").prev();
+        }
+
+        var newTdW = this.reDiffTdWidth($tb),
+            $newTd = $('<td/>');
+
+        if (newTdW) {
+            var tdOffset = $td.offset(),
+                tdLeft = tdOffset.left,
+                tdRigth = tdOffset.left + $td.width();
+
+            $tb.find("thead tr th").each(function () {
+                var $eTd = $(this),
+                    Eoffset = $eTd.offset();
+
+                if (Eoffset.left <= tdLeft && Eoffset.left + $eTd.width() >= tdRigth) {
+                    $eTd.after('<th width="' + newTdW + '">TT</th>');
+                }
+            });
+        } else {
+            $tb.find("thead tr .seatLast").before('<th>TT</th>');
+        }
+
+        $newTd.append(this.$$root.AllControls.getControlByType("TextInput").render());
+
+        var tdStr = $('<div/>').append($newTd).html();
+
+        $tb.find("tbody tr").each(function () {
+            $(this).append('<td/>');
+        });
+
+        var breakCount = 0;
+
+        $tb.find("tbody tr").each(function () {
+
+            var $tTr = $(this);
+
+            if (breakCount > 0) {
+                $tTr.find("td:last").remove();
+                breakCount--;
+                return true;
+            }
+
+            var tdOffset = $td.offset(),
+                tdLeft = tdOffset.left,
+                tdRigth = tdOffset.left + $td.width();
+
+            $tTr.find("td").each(function () {
+
+                var $eTd = $(this),
+                    Eoffset = $eTd.offset();
+
+                if (Eoffset.left <= tdLeft && Eoffset.left + $eTd.width() >= tdRigth) {
+
+                    var thisColspan = $eTd.attr("colspan");
+
+                    if (thisColspan && thisColspan > 1) {
+
+                        var newColspan = parseInt(thisColspan) + 1,
+                            thisRowSpan = $eTd.attr("rowspan");
+
+                        if (thisRowSpan && thisRowSpan > 1) {
+                            breakCount = parseInt(thisRowSpan) - 1;
+                        }
+
+                        $eTd.attr("colspan", newColspan);
+                    } else {
+                        $eTd.after(tdStr);
+                    }
+
+                    $tTr.find("td:last").remove();
+
+                    return false;
+                }
+            });
+        });
+    },
+    reDiffTdWidth: function reDiffTdWidth($tb) {
+
+        var $fieldItem = $tb.closest(".fieldItem"),
+            isFixedW = $tb.find("thead tr th:first").attr("width");
+
+        if (isFixedW) {
+            var colspan = $tb.find("thead tr th").length - 1,
+                fwidth = $fieldItem.width(),
+                tbW = $fieldItem.width();
+
+            var nW = Math.floor(fwidth / (colspan + 1));
+
+            $tb.find("thead tr th").each(function () {
+
+                var $this = $(this),
+                    tW = parseInt($this.attr("width"));
+
+                tW -= tW / tbW * nW;
+
+                tW = tW > 1 && tW || 1;
+
+                tW = Math.floor(tW);
+
+                $this.attr("width", tW);
+            });
+
+            return nW;
+        }
+
+        return false;
+    },
+    deleteTd: function deleteTd($tb) {
+
+        var $active = $tb.find("tbody .active");
+
+        if ($active.length > 0) {
+            var that = this;
+            $active.each(function () {
+                that.deleteTdExec($(this));
+            });
+        } else {
+            this.deleteTdExec($tb.find("tbody tr:last td:last").prev());
+        }
+    },
+    deleteTdExec: function deleteTdExec($td) {
+
+        if (!$td || $td.closest("body").length <= 0) {
+            return;
+        }
+
+        var $tb = $td.closest(".tbLayout"),
+            tdColspan = $td.attr("colspan"),
+            tdRowSpan = $td.attr("rowspan"),
+            $tdArr = [];
+
+        if (tdColspan && tdColspan > 1 || tdRowSpan && tdRowSpan > 1) {
+            this.splitCell($td);
+
+            var count = parseInt(tdColspan);
+
+            if (count > 0) {
+                for (var i = 0; i < count; i++) {
+                    if ($tdArr.length > 0) {
+                        $tdArr.push($tdArr[i - 1].next());
+                    } else {
+                        $tdArr.push($td);
+                    }
+                }
+            } else {
+                $tdArr.push($td);
+            }
+        } else {
+            $tdArr.push($td);
+        }
+
+        var delCol = 0,
+            self = this;
+
+        $.each($tdArr, function () {
+
+            var $this = this,
+                removeOffset = $this.offset(),
+                rLeft = removeOffset.left,
+                tw = $this.width(),
+                rRight = removeOffset.left + tw,
+                cacheOpTds = [];
+
+            $tb.find("thead tr").each(function () {
+                $(this).find("th").each(function () {
+
+                    var $eTd = $(this),
+                        Eoffset = $eTd.offset();
+
+                    if (Eoffset.left <= rLeft && Eoffset.left + $eTd.width() >= rRight) {
+
+                        cacheOpTds.push({
+                            $el: $eTd,
+                            type: "remove"
+                        });
+
+                        return false;
+                    }
+                });
+            });
+
+            $tb.find("tbody tr").each(function () {
+                $(this).find("td").each(function () {
+
+                    var $eTd = $(this),
+                        Eoffset = $eTd.offset();
+
+                    if (Eoffset.left <= rLeft && Eoffset.left + $eTd.width() >= rRight) {
+
+                        var thisColspan = $eTd.attr("colspan");
+
+                        if (thisColspan && thisColspan > 1) {
+
+                            var newColspan = parseInt(thisColspan) - 1;
+
+                            cacheOpTds.push({
+                                $el: $eTd,
+                                type: "colspan",
+                                colSpan: newColspan
+                            });
+                        } else {
+                            cacheOpTds.push({
+                                $el: $eTd,
+                                type: "remove"
+                            });
+                        }
+
+                        return false;
+                    }
+                });
+            });
+
+            $.each(cacheOpTds, function (i) {
+                if (this.type == "remove") {
+
+                    if (i == 0) {
+                        self.CellAverage(this.$el);
+                    }
+                    this.$el.remove();
+                } else {
+                    this.$el.attr("colspan", this.colSpan);
+                }
+            });
+
+            delCol++;
+        });
+    },
+    CellAverage: function CellAverage($td) {
+
+        var nW = $td.attr("width");
+
+        if (nW) {
+            var $tds = $td.siblings(),
+                tbW = $td.parent().width() - nW;
+
+            $tds.each(function () {
+
+                var $this = $(this),
+                    tW = parseInt($this.attr("width"));
+
+                tW += tW / tbW * nW;
+
+                tW = Math.floor(tW);
+
+                $this.attr("width", tW);
+            });
+        }
+    },
+    splitCell: function splitCell($tb) {
+
+        var $tds = $tb.find("td.active"),
+            that = this;
+
+        $tds.each(function () {
+            that.splitCellTd($(this));
+        });
+    },
+    splitCellTd: function splitCellTd($td) {
+        var $tb = $td.closest('.tbLayout'),
+            tbtdLen = $tb.find("thead tr:first th").length,
+            thisColspan = $td.attr("colspan");
+
+        var TdPosi = this.getTdPosi($tb),
+            tdOffset = $td.offset(),
+            tdRowSpan = $td.attr("rowspan"),
+            index = 0;
+
+        $.each(TdPosi, function (i, item) {
+            if (item.X == tdOffset.left) {
+                index = i;
+                return false;
+            }
+        });
+
+        var strTd = '',
+            $tdVir = $('<td/>').append(this.$$root.AllControls.getControlByType("TextInput").render()),
+            firstTd = $('<div/>').append($tdVir).html();
+
+        index++;
+
+        for (var j = 1; j < thisColspan; j++) {
+            strTd += firstTd;
+            index++;
+        }
+
+        if (tdRowSpan > 1) {
+            var $tr = $td.parent(),
+                $trArr = [];
+
+            for (var k = 1; k < tdRowSpan; k++) {
+
+                if ($trArr.length > 0) {
+                    $trArr.push($trArr[k - 2].next());
+                } else {
+                    $trArr.push($tr.next());
+                }
+            }
+
+            $trArr.reverse();
+
+            if (thisColspan == tbtdLen) {
+
+                $.each($trArr, function () {
+                    var $this = this,
+                        newRowspan = parseInt($td.attr("rowspan")) - 1;
+                    $this.append(firstTd + strTd);
+                    $td.attr("rowspan", newRowspan).removeAttr("height");
+                });
+            } else {
+
+                $.each($trArr, function () {
+
+                    var $this = this;
+
+                    $this.find("td").each(function () {
+
+                        var $ttd = $(this),
+                            nextLen = $ttd.next().length,
+                            isOffsetF = $ttd.offset().left > tdOffset.left;
+
+                        if (isOffsetF || nextLen <= 0) {
+
+                            var newRowspan = parseInt($td.attr("rowspan")) - 1;
+
+                            if (!isOffsetF) {
+                                $ttd.after(firstTd + strTd);
+                            } else {
+                                $ttd.before(firstTd + strTd);
+                            }
+
+                            $td.attr("rowspan", newRowspan).removeAttr("height");
+
+                            return false;
+                        }
+                    });
+                });
+            }
+
+            if (thisColspan > 1) {
+                $td.after(strTd);
+                $td.removeAttr("colspan");
+            }
+        } else {
+            $td.after(strTd);
+            $td.removeAttr("colspan");
+        }
+    }
+};
+
+exports.default = CellOp;
+
+/***/ }),
+/* 15 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _DropTo = __webpack_require__(16);
+
+var _DropTo2 = _interopRequireDefault(_DropTo);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var Events = {
+  DropTo: _DropTo2.default
+};
+
+exports.default = Events;
+
+/***/ }),
+/* 16 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+var DropTo = {
+    init: function init($tb) {
+
+        var that = this;
+
+        $tb.on("mousemove", "th", function (event) {
+
+            var $this = $(this),
+                $tb = $this.closest(".tbLayout");
+
+            $tb.find(".ewResize").removeClass("ewResize");
+
+            that.tdCellWidth($this, event);
+
+            return;
+        });
+
+        $tb.on("mousedown", "th.ewResize", function (event) {
+            that.tdMoveChangeCellWidth($(this), event);
+        });
+
+        $tb.on("mousedown", "td", function (event) {
+
+            that.bindSelectionTdEvent({
+                initX: event.pageX,
+                initY: event.pageY,
+                $table: $(this).closest("table")
+            });
+        });
+    },
+    tdCellWidth: function tdCellWidth($el, event) {
+
+        var eOffset = $el.offset(),
+            eW = $el.width(),
+            pageX = event.pageX,
+            isFirst = $el.prev().length <= 0 && true || false,
+            isLast = $el.next().length <= 0 && true || false;
+
+        if (!isFirst) {
+
+            if (pageX > eOffset.left && pageX < eOffset.left + 10) {
+                $el.addClass("ewResize");
+                $el.data("ewdirc", "left");
+                return;
+            } else {
+                $el.removeClass("ewResize");
+            }
+        }
+
+        if (!isLast) {
+            var tdW = eOffset.left + eW;
+            if (pageX < tdW && pageX > tdW - 10) {
+                $el.addClass("ewResize");
+                $el.addClass("ewResize");
+                $el.data("ewdirc", "right");
+            } else {
+                $el.removeClass("ewResize");
+            }
+        }
+    },
+    tdMoveChangeCellWidth: function tdMoveChangeCellWidth($el, event) {
+        if (!$el.attr("width")) {
+            $el.closest(".tbLayout").find("th").each(function () {
+                var $this = $(this);
+                $this.attr("width", $this.width());
+            });
+        }
+
+        var sourceX = event.pageX,
+            that = this,
+            ewdirc = $el.data("ewdirc"),
+            sourceW = parseInt($el.attr("width"));
+
+        $(window).on("mousemove.ewResize", function (event) {
+
+            var diffX = event.pageX - sourceX;
+
+            if (diffX == 0) {
+                return;
+            }
+
+            if (ewdirc != "left") {
+
+                var newW = sourceW + diffX,
+                    diffTdW = newW - parseInt($el.attr("width"));
+
+                if (newW < 1) {
+                    return;
+                }
+
+                var nextW = parseInt($el.next().attr("width")) - diffTdW,
+                    elW = parseInt($el.attr("width")) + diffTdW;
+
+                if (nextW < 2 || elW < 2) {
+                    return false;
+                }
+
+                $el.next().attr("width", nextW);
+                $el.attr("width", elW);
+            } else {
+
+                var newW = sourceW - diffX,
+                    diffTdW = newW - parseInt($el.attr("width"));
+
+                if (newW < 1) {
+                    return;
+                }
+
+                var prevW = parseInt($el.prev().attr("width")) - diffTdW,
+                    elW = parseInt($el.attr("width")) + diffTdW;
+
+                if (prevW < 2 || elW < 2) {
+                    tdArr = [];
+                    return false;
+                }
+
+                $el.prev().attr("width", prevW);
+                $el.attr("width", elW);
+            }
+
+            return false;
+        });
+
+        $(window).on("mouseup.ewResize", function () {
+            $(window).off("mousemove.ewResize");
+            $(window).off("mouseup.ewResize");
+            $(".tbLayout .ewResize").removeClass("ewResize");
+        });
+    },
+
+    bindSelectionTdEvent: function bindSelectionTdEvent(initPoint) {
+
+        $("body").addClass("noSelected");
+
+        var that = this,
+            $selectionBox = false;
+
+        $(window).on("mousemove.selectionTd", function (event) {
+
+            var newX = event.pageX,
+                newY = event.pageY,
+                w = newX - initPoint.initX,
+                h = newY - initPoint.initY,
+                styleObj = {
+                width: w,
+                height: h,
+                left: initPoint.initX,
+                top: initPoint.initY
+            };
+
+            if (initPoint.initX == newX && initPoint.initY == newY) {
+                return false;
+            }
+
+            if ($("#selectionBox").length <= 0) {
+                $("body").append("<div id='selectionBox'></div>");
+                $selectionBox = $("#selectionBox");
+            }
+
+            if (w < 0) {
+
+                styleObj.left = initPoint.initX + w;
+                w = Math.abs(w);
+                styleObj.width = w;
+            }
+
+            if (h < 0) {
+                styleObj.top = initPoint.initY + h;
+                h = Math.abs(h);
+                styleObj.height = h;
+            }
+
+            $selectionBox.css(styleObj);
+
+            that.diffSelectionTd(styleObj, initPoint.$table);
+            return false;
+        });
+
+        $(window).on("mouseup.selectionTd", function () {
+
+            $(window).off("mousemove.selectionTd");
+
+            $(window).off("mouseup.selectionTd");
+
+            $selectionBox && $selectionBox.remove();
+
+            $("body").removeClass("noSelected");
+
+            $("body").one("click", function () {
+                initPoint.$table.find(".active").removeClass("active");
+            });
+        });
+    },
+
+    diffSelectionTd: function diffSelectionTd(styleObj, $table) {
+
+        var that = this;
+
+        $table.find("td").each(function () {
+
+            var $td = $(this),
+                cX = $td.offset().left,
+                cY = $td.offset().top,
+                cW = $td.width(),
+                cH = $td.height(),
+                isInTop = cX < styleObj.left && cX + cW > styleObj.left || cX > styleObj.left && cX < styleObj.left + styleObj.width;
+
+            if (!isInTop) {
+                $td.removeClass("active");
+                return true;
+            }
+
+            if (cY < styleObj.top && cY + cH > styleObj.top || cY > styleObj.top && cY < styleObj.top + styleObj.height) {
+                if (!$td.hasClass("seatLast")) {
+                    $td.addClass("active");
+                }
+
+                if ($td.attr("colspan")) {
+                    var newRight = cX + cW;
+                    if (newRight > styleObj.left + styleObj.width) {
+
+                        styleObj.width = newRight - styleObj.left;
+
+                        that.diffSelectionTd(styleObj, $table);
+
+                        return false;
+                    } else if (cX < styleObj.left) {
+
+                        styleObj.width = styleObj.left + styleObj.width - cX - 1;
+
+                        styleObj.left = cX - 1;
+
+                        that.diffSelectionTd(styleObj, $table);
+
+                        return false;
+                    }
+                }
+
+                if ($td.attr("rowspan")) {
+
+                    var newBottom = cY + cH;
+
+                    if (newBottom > styleObj.top + styleObj.height) {
+
+                        styleObj.height = newBottom - styleObj.top;
+
+                        that.diffSelectionTd(styleObj, $table);
+
+                        return false;
+                    } else {
+
+                        if (cY < styleObj.top - 2) {
+
+                            var diffTop = styleObj.top - cY - 1;
+                            styleObj.top -= diffTop;
+                            styleObj.height += diffTop;
+
+                            that.diffSelectionTd(styleObj, $table);
+
+                            return false;
+                        }
+                    }
+                }
+            } else {
+                $td.removeClass("active");
+            }
+        });
+    }
+
+};
+
+exports.default = DropTo;
+
+/***/ }),
+/* 17 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _Index = __webpack_require__(18);
+
+var _Index2 = _interopRequireDefault(_Index);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var Basics = {
+
+    metaInfo: {
+        title: "控件"
+    },
+
+    Controls: [_Index2.default],
+
+    addControl: function addControl(control) {
         this.Controls.push(control);
     }
 };
 
-/* harmony default export */ var LayOut_Index = (LayOut);
-// EXTERNAL MODULE: ./src/Form/Controls/Basics/TextInput/Css/Index.less
-var TextInput_Css_Index = __webpack_require__(5);
-var TextInput_Css_Index_default = /*#__PURE__*/__webpack_require__.n(TextInput_Css_Index);
+exports.default = Basics;
 
-// CONCATENATED MODULE: ./src/Form/Controls/Basics/TextInput/Index.js
+/***/ }),
+/* 18 */
+/***/ (function(module, exports, __webpack_require__) {
 
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+__webpack_require__(19);
 
 var TextInput = {
-
-    defaultData() {
+    defaultData: function defaultData() {
 
         return {
 
@@ -2145,6 +2555,7 @@ var TextInput = {
         };
     },
 
+
     metaInfo: {
         type: "TextInput",
         name: "文本输入框",
@@ -2156,7 +2567,7 @@ var TextInput = {
         }
     },
 
-    render(data) {
+    render: function render(data) {
 
         if (!data) {
             data = TextInput.defaultData();
@@ -2186,127 +2597,91 @@ var TextInput = {
 
         return $fieldItem;
     },
-
-    parse() {}
-
+    parse: function parse() {},
+    renderProps: function renderProps() {}
 };
 
-/* harmony default export */ var TextInput_Index = (TextInput);
-// CONCATENATED MODULE: ./src/Form/Controls/Basics/Index.js
+exports.default = TextInput;
+
+/***/ }),
+/* 19 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 20 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 
 
+Object.defineProperty(exports, "__esModule", {
+        value: true
+});
 
-var Basics = {
+var _defTpl = __webpack_require__(21);
 
-    metaInfo: {
-        title: "控件"
-    },
+var _defTpl2 = _interopRequireDefault(_defTpl);
 
-    Controls: [TextInput_Index],
+__webpack_require__(22);
 
-    addControl(control) {
-        this.Controls.push(control);
-    }
-};
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/* harmony default export */ var Basics_Index = (Basics);
-// CONCATENATED MODULE: ./src/Form/Controls/Index.js
+var DesiContent = {
+        init: function init() {
 
+                var $el = $('<div class="desiContent"/>');
 
+                $el.append(_defTpl2.default.toDo);
 
+                $el.append('<div class="fromDesign"/>');
 
-var AllControls = {
-
-    getControlByType(type) {
-
-        var InsControl = false;
-
-        //查找控件 
-        $.each(Basics_Index.Controls, function (i, item) {
-            //找到了
-            if (item.metaInfo.type == type) {
-                InsControl = item;
-                return false;
-            }
-        });
-
-        if (InsControl) {
-            return InsControl;
+                this.$$root.$el.append($el);
         }
-
-        //查找控件 
-        $.each(LayOut_Index.Controls, function (i, item) {
-            //找到了
-            if (item.metaInfo.type == type) {
-                InsControl = item;
-                return false;
-            }
-        });
-
-        if (InsControl) {
-            return InsControl;
-        }
-
-        return InsControl;
-    },
-
-    Controls: {
-
-        Basics: Basics_Index,
-
-        LayOut: LayOut_Index
-    }
-
 };
 
-/* harmony default export */ var Controls_Index = (AllControls);
-// CONCATENATED MODULE: ./src/Form/Content/defTpl.js
+exports.default = DesiContent;
+
+/***/ }),
+/* 21 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 var Tpl = {
 
     toDo: '<div class="reToDo">' + '<span class="btnReDo empty"><i class="commoniconfont icon-chexiao"></i><span class="text">撤销</span></span>' + ' <span class="btnToDo empty"><i class="commoniconfont icon-huifu1"></i><span class="text">恢复</span></span></div>'
 
 };
 
-/* harmony default export */ var defTpl = (Tpl);
-// EXTERNAL MODULE: ./src/Form/Content/Css/Index.less
-var Content_Css_Index = __webpack_require__(6);
-var Content_Css_Index_default = /*#__PURE__*/__webpack_require__.n(Content_Css_Index);
+exports.default = Tpl;
 
-// CONCATENATED MODULE: ./src/Form/Content/Index.js
+/***/ }),
+/* 22 */
+/***/ (function(module, exports) {
 
+// removed by extract-text-webpack-plugin
 
+/***/ }),
+/* 23 */
+/***/ (function(module, exports, __webpack_require__) {
 
-
-
-var DesiContent = {
-
-        //初始化
-        init() {
-
-                var $el = $('<div class="desiContent"/>');
-
-                $el.append(defTpl.toDo);
-
-                $el.append('<div class="fromDesign"/>');
-
-                this.$$root.$el.append($el);
-        }
-
-};
-
-/* harmony default export */ var Content_Index = (DesiContent);
-// EXTERNAL MODULE: ./src/Form/Props/Css/Index.less
-var Props_Css_Index = __webpack_require__(7);
-var Props_Css_Index_default = /*#__PURE__*/__webpack_require__.n(Props_Css_Index);
-
-// CONCATENATED MODULE: ./src/Form/Props/Index.js
+"use strict";
 
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+__webpack_require__(24);
 
 var PropsDesign = {
-
-    //初始化
-    init(Opts) {
+    init: function init(Opts) {
 
         var $el = $('<div class="designProps"/>');
 
@@ -2316,8 +2691,7 @@ var PropsDesign = {
 
         Opts.$el.append($el);
     },
-
-    render(opts) {
+    render: function render(opts) {
 
         var type = opts.type,
             $setProps = opts.$el.find(".setProps"),
@@ -2360,383 +2734,10 @@ var PropsDesign = {
     }
 };
 
-/* harmony default export */ var Form_Props_Index = (PropsDesign);
-// CONCATENATED MODULE: ./src/Form/Index.js
-
-
-
-
-
-
-
-
-function FormDesi(params) {
-
-    if (!this instanceof FormDesi) {
-        return new FormDesi(params);
-    }
-
-    var defaults = {
-        $el: $("body"),
-        mode: "desi"
-    };
-
-    this.Settings = $.extend(defaults, params);
-
-    this.NavControls.$$root = this;
-    this.DesiContent.$$root = this;
-    this.DesiProps.$$root = this;
-    this.$el = this.Settings.$el;
-
-    this.NavControls.init(this.Settings);
-    this.DesiProps.init(this.Settings);
-    this.DesiContent.init(this.Settings);
-}
-
-FormDesi.prototype.find = function (el) {
-    return this.Settings.$el.find(el);
-};
-
-FormDesi.prototype.NavControls = NavControls_Index;
-
-FormDesi.prototype.AllControls = Controls_Index;
-
-FormDesi.prototype.DesiContent = Content_Index;
-
-FormDesi.prototype.DesiProps = Form_Props_Index;
-
-window.FormDesi = FormDesi;
-
-/* harmony default export */ var Form_Index = __webpack_exports__["default"] = (FormDesi);
+exports.default = PropsDesign;
 
 /***/ }),
-/* 1 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
-	autosize 4.0.2
-	license: MIT
-	http://www.jacklmoore.com/autosize
-*/
-(function (global, factory) {
-	if (true) {
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [module, exports], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
-				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
-				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-	} else if (typeof exports !== "undefined") {
-		factory(module, exports);
-	} else {
-		var mod = {
-			exports: {}
-		};
-		factory(mod, mod.exports);
-		global.autosize = mod.exports;
-	}
-})(this, function (module, exports) {
-	'use strict';
-
-	var map = typeof Map === "function" ? new Map() : function () {
-		var keys = [];
-		var values = [];
-
-		return {
-			has: function has(key) {
-				return keys.indexOf(key) > -1;
-			},
-			get: function get(key) {
-				return values[keys.indexOf(key)];
-			},
-			set: function set(key, value) {
-				if (keys.indexOf(key) === -1) {
-					keys.push(key);
-					values.push(value);
-				}
-			},
-			delete: function _delete(key) {
-				var index = keys.indexOf(key);
-				if (index > -1) {
-					keys.splice(index, 1);
-					values.splice(index, 1);
-				}
-			}
-		};
-	}();
-
-	var createEvent = function createEvent(name) {
-		return new Event(name, { bubbles: true });
-	};
-	try {
-		new Event('test');
-	} catch (e) {
-		// IE does not support `new Event()`
-		createEvent = function createEvent(name) {
-			var evt = document.createEvent('Event');
-			evt.initEvent(name, true, false);
-			return evt;
-		};
-	}
-
-	function assign(ta) {
-		if (!ta || !ta.nodeName || ta.nodeName !== 'TEXTAREA' || map.has(ta)) return;
-
-		var heightOffset = null;
-		var clientWidth = null;
-		var cachedHeight = null;
-
-		function init() {
-			var style = window.getComputedStyle(ta, null);
-
-			if (style.resize === 'vertical') {
-				ta.style.resize = 'none';
-			} else if (style.resize === 'both') {
-				ta.style.resize = 'horizontal';
-			}
-
-			if (style.boxSizing === 'content-box') {
-				heightOffset = -(parseFloat(style.paddingTop) + parseFloat(style.paddingBottom));
-			} else {
-				heightOffset = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
-			}
-			// Fix when a textarea is not on document body and heightOffset is Not a Number
-			if (isNaN(heightOffset)) {
-				heightOffset = 0;
-			}
-
-			update();
-		}
-
-		function changeOverflow(value) {
-			{
-				// Chrome/Safari-specific fix:
-				// When the textarea y-overflow is hidden, Chrome/Safari do not reflow the text to account for the space
-				// made available by removing the scrollbar. The following forces the necessary text reflow.
-				var width = ta.style.width;
-				ta.style.width = '0px';
-				// Force reflow:
-				/* jshint ignore:start */
-				ta.offsetWidth;
-				/* jshint ignore:end */
-				ta.style.width = width;
-			}
-
-			ta.style.overflowY = value;
-		}
-
-		function getParentOverflows(el) {
-			var arr = [];
-
-			while (el && el.parentNode && el.parentNode instanceof Element) {
-				if (el.parentNode.scrollTop) {
-					arr.push({
-						node: el.parentNode,
-						scrollTop: el.parentNode.scrollTop
-					});
-				}
-				el = el.parentNode;
-			}
-
-			return arr;
-		}
-
-		function resize() {
-			if (ta.scrollHeight === 0) {
-				// If the scrollHeight is 0, then the element probably has display:none or is detached from the DOM.
-				return;
-			}
-
-			var overflows = getParentOverflows(ta);
-			var docTop = document.documentElement && document.documentElement.scrollTop; // Needed for Mobile IE (ticket #240)
-
-			ta.style.minHeight = '';
-			ta.style.minHeight = ta.scrollHeight + heightOffset + 'px';
-
-			// used to check if an update is actually necessary on window.resize
-			clientWidth = ta.clientWidth;
-
-			// prevents scroll-position jumping
-			overflows.forEach(function (el) {
-				el.node.scrollTop = el.scrollTop;
-			});
-
-			if (docTop) {
-				document.documentElement.scrollTop = docTop;
-			}
-		}
-
-		function update() {
-			resize();
-
-			var styleHeight = Math.round(parseFloat(ta.style.height));
-			var computed = window.getComputedStyle(ta, null);
-
-			// Using offsetHeight as a replacement for computed.height in IE, because IE does not account use of border-box
-			var actualHeight = computed.boxSizing === 'content-box' ? Math.round(parseFloat(computed.height)) : ta.offsetHeight;
-
-			// The actual height not matching the style height (set via the resize method) indicates that 
-			// the max-height has been exceeded, in which case the overflow should be allowed.
-			if (actualHeight < styleHeight) {
-				if (computed.overflowY === 'hidden') {
-					changeOverflow('scroll');
-					resize();
-					actualHeight = computed.boxSizing === 'content-box' ? Math.round(parseFloat(window.getComputedStyle(ta, null).height)) : ta.offsetHeight;
-				}
-			} else {
-				// Normally keep overflow set to hidden, to avoid flash of scrollbar as the textarea expands.
-				if (computed.overflowY !== 'hidden') {
-					changeOverflow('hidden');
-					resize();
-					actualHeight = computed.boxSizing === 'content-box' ? Math.round(parseFloat(window.getComputedStyle(ta, null).height)) : ta.offsetHeight;
-				}
-			}
-
-			if (cachedHeight !== actualHeight) {
-				cachedHeight = actualHeight;
-				var evt = createEvent('autosize:resized');
-				try {
-					ta.dispatchEvent(evt);
-				} catch (err) {
-					// Firefox will throw an error on dispatchEvent for a detached element
-					// https://bugzilla.mozilla.org/show_bug.cgi?id=889376
-				}
-			}
-		}
-
-		var pageResize = function pageResize() {
-			if (ta.clientWidth !== clientWidth) {
-				update();
-			}
-		};
-
-		var destroy = function (style) {
-			window.removeEventListener('resize', pageResize, false);
-			ta.removeEventListener('input', update, false);
-			ta.removeEventListener('keyup', update, false);
-			ta.removeEventListener('autosize:destroy', destroy, false);
-			ta.removeEventListener('autosize:update', update, false);
-
-			Object.keys(style).forEach(function (key) {
-				ta.style[key] = style[key];
-			});
-
-			map.delete(ta);
-		}.bind(ta, {
-			height: ta.style.height,
-			resize: ta.style.resize,
-			overflowY: ta.style.overflowY,
-			overflowX: ta.style.overflowX,
-			wordWrap: ta.style.wordWrap
-		});
-
-		ta.addEventListener('autosize:destroy', destroy, false);
-
-		// IE9 does not fire onpropertychange or oninput for deletions,
-		// so binding to onkeyup to catch most of those events.
-		// There is no way that I know of to detect something like 'cut' in IE9.
-		if ('onpropertychange' in ta && 'oninput' in ta) {
-			ta.addEventListener('keyup', update, false);
-		}
-
-		window.addEventListener('resize', pageResize, false);
-		ta.addEventListener('input', update, false);
-		ta.addEventListener('autosize:update', update, false);
-		ta.style.overflowX = 'hidden';
-		ta.style.wordWrap = 'break-word';
-
-		map.set(ta, {
-			destroy: destroy,
-			update: update
-		});
-
-		init();
-	}
-
-	function destroy(ta) {
-		var methods = map.get(ta);
-		if (methods) {
-			methods.destroy();
-		}
-	}
-
-	function update(ta) {
-		var methods = map.get(ta);
-		if (methods) {
-			methods.update();
-		}
-	}
-
-	var autosize = null;
-
-	// Do nothing in Node.js environment and IE8 (or lower)
-	if (typeof window === 'undefined' || typeof window.getComputedStyle !== 'function') {
-		autosize = function autosize(el) {
-			return el;
-		};
-		autosize.destroy = function (el) {
-			return el;
-		};
-		autosize.update = function (el) {
-			return el;
-		};
-	} else {
-		autosize = function autosize(el, options) {
-			if (el) {
-				Array.prototype.forEach.call(el.length ? el : [el], function (x) {
-					return assign(x, options);
-				});
-			}
-			return el;
-		};
-		autosize.destroy = function (el) {
-			if (el) {
-				Array.prototype.forEach.call(el.length ? el : [el], destroy);
-			}
-			return el;
-		};
-		autosize.update = function (el) {
-			if (el) {
-				Array.prototype.forEach.call(el.length ? el : [el], update);
-			}
-			return el;
-		};
-	}
-
-	exports.default = autosize;
-	module.exports = exports['default'];
-});
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 7 */
+/* 24 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin

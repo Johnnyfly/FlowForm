@@ -1,5 +1,6 @@
 import DefHtml from "./DefHtml.js"
 import CellOp from "./CellOp"
+import autosize from "../../../../Js/autosize"
 
 var Props = {
 
@@ -36,6 +37,9 @@ var Props = {
 
             $fieldItem.find(".tbLayout").html($newEl.find(".tbLayout").html());
 
+            autosize($fieldItem.find(".txtInput"));
+            
+
             var op = $(this).attr("op");
 
             //不是重置 恢复数据
@@ -63,15 +67,19 @@ var Props = {
     //表格设置
     tbSet($fieldItem){
 
-        var $tbSet = $(DefHtml.tbSet);
+        var $tbSet = $(DefHtml.tbSet); 
+
+        CellOp.$$root = this.$$root;
 
         //操作
         $tbSet.on("click",".btnNorMal",function(){
 
             var type = $(this).attr("type");
-            if(type=="rowcolspan"){
-                CellOp.rowColSpan($fieldItem.find(".tbLayout"));
-            }
+
+            if(CellOp[type]){
+                CellOp[type]($fieldItem.find(".tbLayout"));
+            } 
+             
         });
 
         return $tbSet;

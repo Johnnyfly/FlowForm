@@ -1,6 +1,8 @@
+import autosize from "../../../../Js/autosize"
+
 var CellOp = {
 
-    //合并行
+    //合并单元格
     rowColSpan: function ($tb) {
 
         if ($tb.find("td.active").length <= 1) {
@@ -12,7 +14,7 @@ var CellOp = {
             $tr = $tb.find("td.active:first").closest("tr"),
             $trs = $tb.find("td.active").closest("tr")
 
-
+        //colsapn
         $tr.find("td.active").each(function () {
             var tdColspan = $(this).attr("colspan");
             if (tdColspan) {
@@ -22,7 +24,7 @@ var CellOp = {
             }
         });
 
-        var aSpanRow = 0
+        //rowSpan
         $trs.each(function () {
             var tdRowSpan = $(this).find("td.active:first").attr("rowspan");
             if (tdRowSpan && $(this).next().find("td.active").length <= 0) {
@@ -31,8 +33,7 @@ var CellOp = {
                 rowSpan += 1;
             }
         });
-        //合并行 两行合并 只合并了前两列 会多出一行 因为遍历的是tr所以需要去掉
-        rowSpan -= aSpanRow;
+
 
         var $firstTd = $tb.find("td.active:first");
 
@@ -47,21 +48,12 @@ var CellOp = {
 
     /**********************************************************  添加行 *******************************************************/
     //获取td 的位置
-    getTdPosi(tbtdLen, $tb) {
+    getTdPosi($tb) {
 
-        var _tr = '<tr>';
-
-        for (var j = 0; j < tbtdLen; j++) {
-            _tr += '<td></td>';
-        }
-        _tr += '</tr>';
-
-        $tb.prepend(_tr);
-
-        var $firstTr = $tb.find("tr:first"),
+        var $firstTr = $tb.find("thead tr:first"),
             TdsWidth = [];
 
-        $firstTr.find("td").each(function (i) {
+        $firstTr.find("th").each(function (i) {
 
             var $this = $(this);
 
@@ -73,37 +65,29 @@ var CellOp = {
 
         });
 
-        $firstTr.remove();
-
         return TdsWidth;
     },
 
     //插入tr
-    insertTr($tr) {
+    insertTr($tb) {
 
-        if (!$tr) {
+
+        var $td = $tb.find("td.active:first"),
+            $tr = false;
+        if ($td.length <= 0) {
+            this.insertToLast($tb);
             return;
+        } else {
+            $tr = $td.closest("tr");
         }
 
 
-        var $tb = $tr.closest(".tbLayout");
-
         //插入后处理
-        var tbtdLen = 0,
+        var tbtdLen = $tb.find("thead tr:first th").length,
             trtdLen = 0;
 
-        //表格td 的 个数
-        $tb.find("tr:first td").each(function () {
-            var tdColspan = $(this).attr("colspan");
-            if (tdColspan) {
-                tbtdLen += parseInt(tdColspan);
-            } else {
-                tbtdLen += 1;
-            }
-        });
-
         //每个td的位置
-        var TdPosi = this.getTdPosi(tbtdLen, $tb),
+        var TdPosi = this.getTdPosi($tb),
             DefectIndex = [],
             tdCol = 0;
 
@@ -292,31 +276,40 @@ var CellOp = {
     },
 
     //插入最后
-    insertToLast($fieldItem) {
+    insertToLast($tb) {
 
         var $tr = $("<tr/>"),
-            colspan = 0;
-
-        $fieldItem.find("table tr:first td").each(function () {
-
-            var tdColspan = $(this).attr("colspan");
-            if (tdColspan) {
-                colspan += parseInt(tdColspan);
-            } else {
-                colspan += 1;
-            }
-        });
+            colspan = $tb.find("thead tr:first th").length;
 
         for (var i = 0; i < colspan; i++) {
-            $tr.append('<td><div class="tdNull"></div></td>');
+            var $td = $('<td/>');
+            $td.append(this.$$root.AllControls.getControlByType("TextInput").render());
+            $tr.append($td);
         }
 
-        $fieldItem.find("table").append($tr);
+        $tb.find("tbody").append($tr);
+
+        autosize($tr.find(".txtInput"));
     },
 
     /**********************************************************  添加行 end *******************************************************/
 
-    deleteTr($td) {
+    //删除行
+    deleteTr($tb) {
+
+        var $active = $tb.find("tbody .active");
+
+        if ($active.length > 0) {
+            var that = this;
+            $active.each(function () {
+                that.deleteTrComm($(this));
+            });
+        } else {
+            this.deleteTrComm($tb.find("tbody tr:last td:first"));
+        }
+    },
+
+    deleteTrComm($td) {
 
         if (!$td) {
             return;
@@ -349,27 +342,14 @@ var CellOp = {
     //删除行
     commDeleteTr($tr) {
 
-
-        //隐藏滚动条 以免添加行后出现 影响td位置计算
-        $("#desiContent").css("overflow", "hidden");
-
         var $tb = $tr.closest(".tbLayout");
 
         //插入后处理
-        var tbtdLen = 0,
+        var tbtdLen = $tb.find("thead tr:first th").length,
             trtdLen = 0;
 
-        //表格td 的 个数
-        $tb.find("tr:first td").each(function () {
-            var tdColspan = $(this).attr("colspan");
-            if (tdColspan) {
-                tbtdLen += parseInt(tdColspan);
-            } else {
-                tbtdLen += 1;
-            }
-        });
 
-        var TdPosi = this.getTdPosi(tbtdLen, $tb),
+        var TdPosi = this.getTdPosi($tb),
             DefectIndex = [],
             tdCol = 0;
 
@@ -540,7 +520,7 @@ var CellOp = {
         });
 
         $tr.remove();
-        $("#desiContent").removeAttr("style");
+
     },
 
     /***********************************************************  行操作 end  ***************************************************************/
@@ -548,41 +528,59 @@ var CellOp = {
 
     /***********************************************************  列操作 end  ***************************************************************/
 
-    insertTd($td) {
+    insertTd($tb) {
 
-        if (!$td) {
-            return;
+        var $td = $tb.find("td.active:first");
+
+        if ($td.length <= 0) {
+            $td = $tb.find("thead tr th.seatLast").prev();
         }
 
-        //隐藏滚动条 以免添加行后出现 影响td位置计算
-        $("#desiContent").css("overflow", "hidden");
-
         // 实现原理 先 追加到 最后，然后重新计算位置
-        var $tb = $td.closest(".tbLayout"),
-            newTdW = this.reDiffTdWidth($tb),
+        var newTdW = this.reDiffTdWidth($tb),
             $newTd = $('<td/>');
         //新的td
         //td 有宽度
         if (newTdW) {
-            $newTd.attr("width", newTdW);
+
+            //插入后处理 需要重新计算 表格 最后一列 隐藏的 会导致 变形
+            var tdOffset = $td.offset(),
+                tdLeft = tdOffset.left,
+                tdRigth = tdOffset.left + $td.width();
+
+            //遍历没有td 找到 相同位置上的元素
+            $tb.find("thead tr th").each(function () { 
+                var $eTd = $(this),
+                    Eoffset = $eTd.offset();
+                //找到了
+                if (Eoffset.left <= tdLeft && Eoffset.left + $eTd.width() >= tdRigth) {
+                    $eTd.after('<th width="' + newTdW + '">TT</th>');
+                }
+            });
+
+        } else {
+            $tb.find("thead tr .seatLast").before('<th>TT</th>')
         }
-        $newTd.append('<div class="default-ele">&nbsp;</div>');
+
+
+        $newTd.append(this.$$root.AllControls.getControlByType("TextInput").render());
+
         var tdStr = $('<div/>').append($newTd).html();
 
 
-        //追加到最后
-        $tb.find("tr").each(function () {
-            $(this).append(tdStr);
+        //思路： 开始每一行 最后添加一个td 然后 遍历每一行 找到添加的位置 插入元素 或者 合并单元格，
+        //把 最后一个在移除掉 这样 表格 不会 变形
+
+        //追加到最后 站位  每一行 重新处理
+        $tb.find("tbody tr").each(function () {
+            $(this).append('<td/>');
         });
 
         //插入后处理
-        var tdOffset = $td.offset(),
-            tdLeft = tdOffset.left,
-            tdRigth = tdOffset.left + $td.width(),
-            breakCount = 0;
+        var breakCount = 0;
 
+        $tb.find("tbody tr").each(function () {
 
-        $tb.find("tr").each(function () {
 
             var $tTr = $(this);
 
@@ -593,6 +591,10 @@ var CellOp = {
                 return true;
             }
 
+            //插入后处理 需要重新计算 表格 最后一列 隐藏的 会导致 变形
+            var tdOffset = $td.offset(),
+                tdLeft = tdOffset.left,
+                tdRigth = tdOffset.left + $td.width();
 
 
             //遍历没有td 找到 相同位置上的元素
@@ -631,39 +633,27 @@ var CellOp = {
             });
         });
 
-        $("#desiContent").removeAttr("style");
-
     },
 
     //重新计算td的宽度
-    reDiffTdWidth($tb) {
+    reDiffTdWidth($tb) { 
+
 
         var $fieldItem = $tb.closest(".fieldItem"),
-            isFixedW = $tb.find("tr td:first").attr("width");
+            isFixedW = $tb.find("thead tr th:first").attr("width");
 
         if (isFixedW) {
 
-            var colspan = 0,
+            //最后一列 隐藏 不显示
+            var colspan = $tb.find("thead tr th").length - 1,
                 fwidth = $fieldItem.width(),
-                tbW = 0;
+                tbW = $fieldItem.width();
 
-            $fieldItem.find("table tr:first td").each(function () {
-
-                var tdColspan = $(this).attr("colspan");
-                tbW += $(this).width();
-
-                if (tdColspan) {
-                    colspan += parseInt(tdColspan);
-                } else {
-                    colspan += 1;
-                }
-            });
-
-            //添加一列后的宽度 默认 平分的宽度
+            //添加一列后的宽度 默认 平分的宽度 加一 是 因为 把 添加后的 也计算进去
             var nW = Math.floor(fwidth / (colspan + 1));
 
             //重新计算td 的宽度  按比例 减去 宽度
-            $fieldItem.find("table tr td").each(function () {
+            $tb.find("thead tr th").each(function () {
 
                 var $this = $(this),
 
@@ -688,16 +678,28 @@ var CellOp = {
 
     },
 
+    //删除列
+    deleteTd($tb) {
+
+        var $active = $tb.find("tbody .active");
+
+        if ($active.length > 0) {
+            var that = this;
+            $active.each(function () {
+                that.deleteTdExec($(this));
+            });
+        } else {
+            this.deleteTdExec($tb.find("tbody tr:last td:last").prev());
+        }
+    },
+
     //删除表格列
-    deleteTd($td) {
+    deleteTdExec($td) {
 
         if (!$td || $td.closest("body").length <= 0) {
             return;
         }
 
-
-        //隐藏滚动条 以免添加行后出现 影响td位置计算
-        $("#desiContent").css("overflow", "hidden");
 
         //实现思路 存在 合并单元格的 处理太复杂 所以 如果有存在合并的 就拆分掉 在 循环遍历处理  一次只删除一个单元格
 
@@ -744,13 +746,31 @@ var CellOp = {
                 //缓存td的操作 避免 即时操作 表格变形
                 cacheOpTds = [];
 
-            //保留一列 不让删除
-            if ($tb.find("tr:first td").length <= 1) {
-                $tb.closest(".fieldItem").find(".btnDelField").click();
-                return false;
-            }
+            $tb.find("thead tr").each(function () {
 
-            $tb.find("tr").each(function () {
+                //遍历没有td 找到 相同位置上的元素
+                $(this).find("th").each(function () {
+
+                    var $eTd = $(this),
+                        Eoffset = $eTd.offset();
+
+                    //找到了
+                    if (Eoffset.left <= rLeft && Eoffset.left + $eTd.width() >= rRight) {
+
+                        cacheOpTds.push({
+                            $el: $eTd,
+                            type: "remove"
+                        });
+
+                        //下一行
+                        return false;
+                    }
+
+                });
+
+            });
+
+            $tb.find("tbody tr").each(function () {
 
                 //遍历没有td 找到 相同位置上的元素
                 $(this).find("td").each(function () {
@@ -788,17 +808,18 @@ var CellOp = {
             });
 
             //进行真实的操作 没一列 进行一次操作
-            $.each(cacheOpTds, function () {
+            $.each(cacheOpTds, function (i) {
                 if (this.type == "remove") {
-                    //平均分列宽
-                    self.CellAverage(this.$el);
+
+                    if (i == 0) {
+                        //平均分列宽
+                        self.CellAverage(this.$el);
+                    }
                     this.$el.remove();
                 } else {
-
                     //减去删除的宽度
-                    var newW = this.$el.width() - tw;
-                    this.$el.attr("colspan", this.colSpan).attr("width", newW);
-
+                    // var newW = this.$el.width() - tw;
+                    this.$el.attr("colspan", this.colSpan);
                 }
             });
 
@@ -806,59 +827,62 @@ var CellOp = {
 
         });
 
-        var $txtCol = $("#controlAttrs .txtCol");
-        $txtCol.val(parseInt($txtCol.val()) - delCol);
+        // var $txtCol = $("#controlAttrs .txtCol");
+        // $txtCol.val(parseInt($txtCol.val()) - delCol);
 
-        //清除滚动条
-        $("#desiContent").removeAttr("style");
+
 
     },
 
     //平均分移除td的宽度
     CellAverage($td) {
 
-        var $tds = $td.siblings(),
-            nW = $td.width(),
-            tbW = $td.parent().width() - nW;
+        var nW = $td.attr("width");
 
-        //重新计算td 的宽度  按比例 减去 宽度
-        $tds.each(function () {
+        if (nW) {
+            var $tds = $td.siblings(),
+                tbW = $td.parent().width() - nW;
 
-            var $this = $(this),
+            //重新计算td 的宽度  按比例 减去 宽度
+            $tds.each(function () {
 
-                tW = parseInt($this.attr("width"));
+                var $this = $(this),
 
-            tW += (tW / tbW * nW);
+                    tW = parseInt($this.attr("width"));
 
-            tW = Math.floor(tW);
+                tW += (tW / tbW * nW);
 
-            $this.attr("width", tW);
+                tW = Math.floor(tW);
 
-        });
+                $this.attr("width", tW);
 
+            });
+        }
 
     },
 
     //拆分单元格
-    splitCell($td) {
+    splitCell($tb) {
+
+        var $tds = $tb.find("td.active"),
+            that = this;
+
+        $tds.each(function () {
+            that.splitCellTd($(this));
+        });
+
+    },
+
+    //拆分单元格
+    splitCellTd($td) {
 
         //td 总行数
         var $tb = $td.closest('.tbLayout'),
-            tbtdLen = 0,
+            tbtdLen = $tb.find("thead tr:first th").length,
             thisColspan = $td.attr("colspan");
 
-        //表格td 的 个数
-        $tb.find("tr:first td").each(function () {
-            var tdColspan = $(this).attr("colspan");
-            if (tdColspan) {
-                tbtdLen += parseInt(tdColspan);
-            } else {
-                tbtdLen += 1;
-            }
-        });
-
         //每个td的位置
-        var TdPosi = this.getTdPosi(tbtdLen, $tb),
+        var TdPosi = this.getTdPosi($tb),
             tdOffset = $td.offset(),
             tdRowSpan = $td.attr("rowspan"),
             index = 0;
@@ -871,14 +895,15 @@ var CellOp = {
             }
         });
 
+         
         var strTd = '',
-            firstTd = '<td width="' + TdPosi[index].W + '"><div class="tdNull">&nbsp;</div></td>',
-            firstW = TdPosi[index].W;
+            $tdVir  = $('<td/>').append(this.$$root.AllControls.getControlByType("TextInput").render()),
+            firstTd = $('<div/>').append($tdVir).html(); 
 
         index++;
 
         for (var j = 1; j < thisColspan; j++) {
-            strTd += '<td width="' + TdPosi[index].W + '"><div class="tdNull">&nbsp;</div></td>';
+            strTd += firstTd;
             index++;
         }
 
@@ -947,12 +972,12 @@ var CellOp = {
             if (thisColspan > 1) {
                 //原本的td处理
                 $td.after(strTd);
-                $td.attr("width", firstW).attr("colspan", 1);
+                $td.removeAttr("colspan");
             }
 
         } else {
             $td.after(strTd);
-            $td.attr("width", firstW).attr("colspan", 1);
+            $td.removeAttr("colspan");
         }
 
 

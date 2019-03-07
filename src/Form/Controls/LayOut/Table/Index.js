@@ -170,6 +170,8 @@ var TableControl = {
                     $tr.append('<th>TT</th>');
                 });
 
+                $tr.append('<th class="seatLast" />');
+
                 $tb.find("thead").append($tr);
 
             });
