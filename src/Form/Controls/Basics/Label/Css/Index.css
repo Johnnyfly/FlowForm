@@ -1,0 +1,11 @@
+.setFontSize .fSize {
+  font-size: 14px;
+  display: inline-block;
+  width: 76px;
+}
+.setFontSize .labSelect {
+  height: 24px;
+  border-radius: 3px;
+  width: 60px;
+  font-size: 14px;
+}

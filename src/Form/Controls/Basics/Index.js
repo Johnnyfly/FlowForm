@@ -1,5 +1,8 @@
 
 import TextInputControl from "./TextInput/Index"
+import LabelControl from "./Label/Index"
+import InputControl from "./Input/Index"
+
 
 var Basics = {
 
@@ -7,7 +10,7 @@ var Basics = {
         title: "控件"
     },
 
-    Controls: [TextInputControl],
+    Controls: [TextInputControl,LabelControl,InputControl],
 
     addControl(control){
         this.Controls.push(control);

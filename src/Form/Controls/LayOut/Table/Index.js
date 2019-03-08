@@ -9,7 +9,7 @@ import PrivateEvents from "./Events/Index"
 
 var TableControl = {
 
-    metaInfo: {
+    metaInfo: { 
         type: "Table",
         name: "布局表格",
         iconClass: "zppicon-biaoge",

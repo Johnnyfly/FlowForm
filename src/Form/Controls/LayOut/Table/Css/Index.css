@@ -31,6 +31,9 @@
 .desiContent .tbLayout th.ewResize {
   cursor: ew-resize;
 }
+.desiContent .tbLayout th.seatLast {
+  height: auto;
+}
 .desiContent .tbLayout .seatLast {
   visibility: hidden;
   height: 44px;

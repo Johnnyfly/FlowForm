@@ -21,9 +21,23 @@
   width: 740px;
   border: 1px solid #fff;
   margin: 3px 10px;
-  line-height: 25px;
   position: relative;
   padding: 8px;
+  line-height: 25px;
+}
+.desiContent .fieldItem.selected {
+  border: 1px dashed #999;
+  background: #fff9e5;
+}
+.desiContent .fieldItem .lTitle {
+  float: left;
+  width: 83px;
+  font-size: 14px;
+  padding-right: 8px;
+  text-align: right;
+  word-wrap: break-word;
+  word-break: normal;
+  margin-top: 1px;
 }
 .desiContent .reToDo {
   border-bottom: 1px #ccc solid;

@@ -35,7 +35,7 @@
 .ThemeBorderColorLightHover:hover {
   border-color: #3e78e6!important;
 }
-.ThemeBorderColorLightSelected.selected {
+.ThemeBorderColorLightSelected {
   border-color: #3e78e6!important;
 }
 .ThemeBgCool {
@@ -216,6 +216,10 @@ q:after {
 table {
   border-collapse: collapse;
   border-spacing: 0;
+}
+input,
+textarea {
+  outline: none;
 }
 .noSelected {
   -webkit-user-select: none;

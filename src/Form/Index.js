@@ -15,7 +15,8 @@ function FormDesi(params){
 
     var defaults = { 
         $el: $("body"),
-        mode:"desi"
+        mode:"desi",
+        defaultTab:"Basics"
     }
 
     this.Settings = $.extend(defaults, params);  

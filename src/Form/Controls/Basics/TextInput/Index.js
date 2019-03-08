@@ -20,6 +20,7 @@ var TextInput = {
     },
 
     metaInfo: {
+        show:false,
         type: "TextInput",
         name: "文本输入框",
         iconClass: "icon-wenbenshurukuang",

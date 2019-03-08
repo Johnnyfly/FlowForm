@@ -55,6 +55,8 @@ var Libs = {
             var $insetEl =  $$root.Settings.$el.find("#insetEl");
             InsControl.$$root = $$root;
             
+            $insetEl.closest(".fromDesign").find(".fieldItem").removeClass("selected");
+             
             var _controlHtml = InsControl.render(); 
             _controlHtml.addClass("selected");
             $insetEl.after(_controlHtml);
@@ -76,9 +78,9 @@ var Libs = {
             $allControls = $('<div class="allControls"/>'),
             $controlTab = $('<ul class="tabControl" />');
 
-        for (var key in AllControls) {
+        for (var key in AllControls) { 
             $controlTab.append('<li type="' + key + '" class="item">' + AllControls[key].metaInfo.title + '</li>');
-            $allControls.append(this.genControl(key, AllControls[key].Controls));
+            $allControls.append(this.genControl(key, AllControls[key].Controls)); 
         }
 
         $allControls.prepend($controlTab);
@@ -99,6 +101,10 @@ var Libs = {
         $controlBox.addClass(className);
 
         $.each(Controls, function (i, item) {
+
+            if(item.metaInfo.show == false){
+                return true;
+            }
 
             var $cItem = $('<div class="cItem ThemeBgCoolHover ThemeBorderColorLightHover" />'),
                 $text = $('<span class="text"/>'),

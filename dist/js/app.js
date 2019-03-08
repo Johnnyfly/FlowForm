@@ -377,7 +377,8 @@ function FormDesi(params) {
 
     var defaults = {
         $el: $("body"),
-        mode: "desi"
+        mode: "desi",
+        defaultTab: "Basics"
     };
 
     this.Settings = $.extend(defaults, params);
@@ -473,6 +474,8 @@ var Libs = {
             var $insetEl = $$root.Settings.$el.find("#insetEl");
             InsControl.$$root = $$root;
 
+            $insetEl.closest(".fromDesign").find(".fieldItem").removeClass("selected");
+
             var _controlHtml = InsControl.render();
             _controlHtml.addClass("selected");
             $insetEl.after(_controlHtml);
@@ -509,6 +512,10 @@ var Libs = {
         $controlBox.addClass(className);
 
         $.each(Controls, function (i, item) {
+
+            if (item.metaInfo.show == false) {
+                return true;
+            }
 
             var $cItem = $('<div class="cItem ThemeBgCoolHover ThemeBorderColorLightHover" />'),
                 $text = $('<span class="text"/>'),
@@ -2508,6 +2515,14 @@ var _Index = __webpack_require__(18);
 
 var _Index2 = _interopRequireDefault(_Index);
 
+var _Index3 = __webpack_require__(31);
+
+var _Index4 = _interopRequireDefault(_Index3);
+
+var _Index5 = __webpack_require__(36);
+
+var _Index6 = _interopRequireDefault(_Index5);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var Basics = {
@@ -2516,7 +2531,7 @@ var Basics = {
         title: "控件"
     },
 
-    Controls: [_Index2.default],
+    Controls: [_Index2.default, _Index4.default, _Index6.default],
 
     addControl: function addControl(control) {
         this.Controls.push(control);
@@ -2557,6 +2572,7 @@ var TextInput = {
 
 
     metaInfo: {
+        show: false,
         type: "TextInput",
         name: "文本输入框",
         iconClass: "icon-wenbenshurukuang",
@@ -2617,7 +2633,7 @@ exports.default = TextInput;
 
 
 Object.defineProperty(exports, "__esModule", {
-        value: true
+    value: true
 });
 
 var _defTpl = __webpack_require__(21);
@@ -2629,16 +2645,24 @@ __webpack_require__(22);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var DesiContent = {
-        init: function init() {
+    init: function init() {
 
-                var $el = $('<div class="desiContent"/>');
+        var $el = $('<div class="desiContent"/>');
 
-                $el.append(_defTpl2.default.toDo);
+        $el.append(_defTpl2.default.toDo);
 
-                $el.append('<div class="fromDesign"/>');
+        $el.append('<div class="fromDesign desiForm"/>');
 
-                this.$$root.$el.append($el);
-        }
+        this.$$root.$el.append($el);
+
+        this.initEvent($el);
+    },
+    initEvent: function initEvent($el) {
+        $el.on("click", ".fieldItem", function () {
+            $el.find(".fieldItem").removeClass("selected");
+            $(this).addClass("selected");
+        });
+    }
 };
 
 exports.default = DesiContent;
@@ -2738,6 +2762,250 @@ exports.default = PropsDesign;
 
 /***/ }),
 /* 24 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 25 */,
+/* 26 */,
+/* 27 */,
+/* 28 */,
+/* 29 */,
+/* 30 */,
+/* 31 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+__webpack_require__(32);
+
+var _Index = __webpack_require__(10);
+
+var _Index2 = _interopRequireDefault(_Index);
+
+var _Index3 = __webpack_require__(33);
+
+var _Index4 = _interopRequireDefault(_Index3);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var LabelControl = {
+    defaultData: function defaultData() {
+
+        return {
+
+            type: "Label",
+
+            id: "Label_" + +new Date(),
+
+            Settings: {
+                fontSize: 16
+            },
+
+            values: ['Label']
+        };
+    },
+
+
+    metaInfo: {
+        type: "Label",
+        name: "文字",
+        iconClass: "zppicon-wenzi"
+
+    },
+
+    render: function render(data) {
+
+        if (!data) {
+            data = this.defaultData();
+        }
+
+        var $fieldItem = $('<div class="fieldItem" />'),
+            $labelBox = $('<div class="LabelText" />');
+
+        $fieldItem.attr("id", data.id).attr("type", data.type);
+
+        if (data.values[0]) {
+            $labelBox.text(data.values[0]);
+        }
+
+        $labelBox.css("fontSize", data.Settings.fontSize);
+
+        $fieldItem.append($labelBox);
+
+        return $fieldItem;
+    },
+    parse: function parse() {},
+    renderProps: function renderProps() {
+
+        var $setProps = this.$$root.find(".setProps"),
+            $fieldItem = this.$$root.find(".fieldItem.selected");
+
+        $setProps.empty();
+
+        var $group = this.genGroup({
+            className: "setFontSize"
+        });
+        $group.append(_Index4.default.fontSize.call(this, $fieldItem));
+
+        $setProps.append($group);
+    }
+};
+
+Object.setPrototypeOf(LabelControl, _Index2.default);
+
+exports.default = LabelControl;
+
+/***/ }),
+/* 32 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 33 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _DefPropsTpl = __webpack_require__(34);
+
+var _DefPropsTpl2 = _interopRequireDefault(_DefPropsTpl);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var Props = {
+    fontSize: function fontSize($fieldItem) {
+
+        var $fSize = $(_DefPropsTpl2.default.fontSize);
+
+        $fSize.eq(1).on("change", function () {
+            $fieldItem.find(".LabelText").css("font-size", this.value + "px");
+        });
+
+        return $fSize;
+    }
+};
+
+exports.default = Props;
+
+/***/ }),
+/* 34 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+var AttrHtml = {
+
+    fontSize: '<span class="fSize">字体大小：</span><select class="labSelect">' + '<option value ="12">12</option>' + '<option value ="16">16</option>' + '<option value ="18">18</option>' + '<option value ="24">24</option>' + '<option value ="32">32</option>' + '<option value ="48">48</option>' + '</select>'
+
+};
+
+exports.default = AttrHtml;
+
+/***/ }),
+/* 35 */,
+/* 36 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+__webpack_require__(37);
+
+var _Index = __webpack_require__(10);
+
+var _Index2 = _interopRequireDefault(_Index);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var InputControl = {
+    defaultData: function defaultData() {
+
+        return {
+
+            type: "Input",
+
+            id: "Input_" + +new Date(),
+
+            Settings: {
+                placeHolder: '请输入'
+            },
+
+            values: ['']
+        };
+    },
+
+
+    metaInfo: {
+        type: "Input",
+        name: "文本输入框",
+        iconClass: "zppicon-wenbenshurukuang"
+    },
+
+    render: function render(data) {
+
+        if (!data) {
+            data = this.defaultData();
+        }
+
+        var $fieldItem = $('<div class="fieldItem" />'),
+            $lTitle = $('<span class="lTitle">文本输入框</span>'),
+            $inputBox = $('<div class="inputBox"><textarea class="txtInput"></textarea></div>');
+
+        $fieldItem.attr("id", data.id).attr("type", data.type);
+
+        if (data.values[0]) {
+            $inputBox.val(data.values[0]);
+        }
+
+        $fieldItem.append($lTitle);
+        $fieldItem.append($inputBox);
+
+        return $fieldItem;
+    },
+    parse: function parse() {},
+    renderProps: function renderProps() {
+
+        var $setProps = this.$$root.find(".setProps"),
+            $fieldItem = this.$$root.find(".fieldItem.selected");
+
+        $setProps.empty();
+
+        var $group = this.genGroup({
+            className: "setFontSize"
+        });
+
+
+        $setProps.append($group);
+    }
+};
+
+Object.setPrototypeOf(InputControl, _Index2.default);
+
+exports.default = InputControl;
+
+/***/ }),
+/* 37 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
